@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive 2D Plane Stress / Mohr Circle</title>
+<style>
+:root{
+  --bg:#f7f8fa; --panel:#ffffff; --text:#1f2937; --muted:#6b7280; --border:#d1d5db;
+  --accent:#2563eb; --accent2:#dc2626; --accent3:#059669; --accent4:#7c3aed; --grid:#e5e7eb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrapper{max-width:1500px;margin:0 auto;padding:18px}
+h1{margin:0 0 6px;font-size:28px}
+.sub{color:var(--muted);margin-bottom:18px}
+.note{background:#eef4ff;border:1px solid #bfd2ff;padding:12px 14px;border-radius:10px;margin-bottom:16px}
+.layout{display:grid;grid-template-columns:240px 1fr;gap:16px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
+.controls label{display:block;font-size:14px;margin:10px 0 4px}
+input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:15px}
+input[type=range]{width:100%}
+.btnrow{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+button{padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:hover{filter:brightness(.97)}
+.section-title{font-weight:600;margin-bottom:8px}
+.visual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+svg{width:100%;height:auto;background:#fff}
+.results{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-top:16px}
+.metric{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.metric .k{font-size:13px;color:var(--muted)} .metric .v{font-size:20px;font-weight:600;margin-top:3px}
+.lower{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-top:16px}
+.tensor-wrap{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:nowrap;margin-top:14px}
+.tensor{border:1px solid var(--border);border-radius:10px;padding:10px 14px;text-align:center}
+.tensor pre{font-family:Consolas,monospace;margin:6px 0 0;font-size:15px}
+.matrix{display:inline-grid;grid-template-columns:auto auto;gap:2px 16px;position:relative;padding:4px 12px;margin-top:6px;font-family:Consolas,monospace;font-size:15px;line-height:1.25}
+.matrix::before,.matrix::after{content:"";position:absolute;top:0;bottom:0;width:7px;border-top:2px solid var(--text);border-bottom:2px solid var(--text)}
+.matrix::before{left:0;border-left:2px solid var(--text)}
+.matrix::after{right:0;border-right:2px solid var(--text)}
+.small{font-size:13px;color:var(--muted)}
+.initial-angle-inline{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;white-space:nowrap}
+.initial-angle-value{font-size:14px;font-weight:600;color:var(--text)}
+.axis{stroke:#6b7280;stroke-width:1}
+.gridline{stroke:var(--grid);stroke-width:1}
+.circle-main{fill:none;stroke:#111827;stroke-width:2.2}
+.original-line{stroke:#808080;stroke-width:2;stroke-dasharray:12 10}
+.rotated-line{stroke:var(--accent);stroke-width:2.5}
+.normal-arrow{stroke:var(--accent);stroke-width:2.3;fill:none}
+.shear-arrow{stroke:var(--accent2);stroke-width:2.3;fill:none}
+.element-edge{stroke:#111827;stroke-width:2;fill:#fff}
+.vm-line{stroke:var(--accent4);stroke-width:2.2;fill:none}
+.tresca-line{stroke:var(--accent2);stroke-width:2.2;fill:none}
+.current-point{fill:var(--accent);stroke:#fff;stroke-width:2}
+.secondary-point{fill:var(--accent3);stroke:#fff;stroke-width:2}
+.principal-point{fill:#111827}
+svg text{font-size:11px;fill:#111827}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.visual-grid,.lower{grid-template-columns:1fr}.tensor-wrap{flex-wrap:wrap}.results{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:650px){.results{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>Interactive 2D Plane Stress / Mohr Circle</h1>
+  <div class="sub">Self-study, training and engineering visualization</div>
+  <div class="note">
+    This tool represents a two-dimensional plane-stress state.
+    This interactive tool is intended for self-study, training and visualization of two-dimensional stress transformation concepts.
+    It links the stress element, Mohr circle, hydrostatic/deviatoric decomposition, and Tresca/von Mises representations.
+    It does not replace applicable design codes, project requirements or independent engineering verification.
+  </div>
+
+  <div class="layout">
+    <aside class="panel controls">
+      <div class="section-title">Stress input</div>
+      <label for="s11">σ11 (MPa)</label><input id="s11" type="number" value="170" step="1">
+      <label for="s22">σ22 (MPa)</label><input id="s22" type="number" value="50" step="1">
+      <label for="t12">σ12 (τ12) = σ21 (τ21) (MPa)</label><input id="t12" type="number" value="20" step="1">
+
+      <div class="tensor" style="margin-top:12px">
+        <div class="small">Stress tensor</div>
+        <div id="tensorOriginalLeft" class="matrix"></div>
+      </div>
+
+      <div class="initial-angle-inline">
+        <span class="small">Initial Mohr angle</span>
+        <span><span id="initialAngleOut" class="initial-angle-value">—</span><span class="small">°</span></span>
+        <span class="small">, 2θ</span>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="section-title">Rotation</div>
+      <div id="deltaBadge" class="small">Δ2θ = 0°</div>
+      <label for="delta">Additional Mohr angle, Δ2θ</label>
+      <input id="delta" type="range" min="-90" max="90" step="1" value="0">
+      <div class="btnrow">
+        <button type="button" data-step="-10">−10°</button>
+        <button type="button" id="zeroAngle">Zero</button>
+        <button type="button" data-step="10">+10°</button>
+      </div>
+      <label for="deltaNumber">Direct Δ2θ entry (deg)</label>
+      <input id="deltaNumber" type="number" min="-90" max="90" step="1" value="0">
+      <button id="animateButton" style="width:100%;margin-top:8px">Animate</button>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+      <div class="section-title">Convenience functions</div>
+      <button id="principalToInput" class="primary" style="width:100%;margin-bottom:8px">Set principal state as input</button>
+      <button id="rotatedToInput" style="width:100%">Set current rotated state as input</button>
+    </aside>
+
+    <main>
+      <div class="visual-grid">
+        <section class="panel">
+          <div class="section-title">Mohr Circle</div>
+          <div id="mohrAngleBadge" class="small">2θ = 0°</div>
+          <svg id="mohrSvg" viewBox="0 0 440 330" aria-label="Interactive Mohr circle"></svg>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">Stress Element</div>
+          <div id="cubeAngleBadge" class="small">θ = 0°</div>
+          <svg id="elementSvg" viewBox="0 0 440 330" aria-label="Rotated stress element"></svg>
+        </section>
+      </div>
+
+      <section class="results">
+        <div class="metric"><div class="k">σavg</div><div id="avgOut" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">Radius</div><div id="radOut" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">σ1</div><div id="p1Out" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">σ2</div><div id="p2Out" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">σx′</div><div id="sxOut" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">σy′</div><div id="syOut" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">τx′y′</div><div id="ttOut" class="v">—</div><div class="k">MPa</div></div>
+        <div class="metric"><div class="k">von Mises</div><div id="vmOut" class="v">—</div><div class="k">MPa</div></div>
+      </section>
+
+      <div class="lower">
+        <section class="panel">
+          <div class="section-title">2D Hydrostatic / Deviatoric Decomposition</div>
+          <div class="small">The same 2×2 decomposition used in the workbook.</div>
+          <div class="tensor-wrap">
+            <div class="tensor"><div class="small">Stress tensor</div><div id="tensorOriginal" class="matrix"></div></div>
+            <div>=</div>
+            <div class="tensor"><div class="small">Hydrostatic / mean</div><div id="tensorHydro" class="matrix"></div></div>
+            <div>+</div>
+            <div class="tensor"><div class="small">Deviatoric</div><div id="tensorDev" class="matrix"></div></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">Tresca / von Mises Representation</div>
+          <div class="small">Principal-stress plane using the current von Mises equivalent-stress level for comparison.</div>
+          <svg id="failureSvg" viewBox="0 0 500 340" aria-label="Tresca and von Mises contours"></svg>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { s11:170, s22:50, t12:20, delta:0 };
+  let animationTimer = null;
+  let animationStartDelta = 0;
+  let animationDirection = 1;
+  let animationPauseUntil = 0;
+  let ignoreNextPageClick = false;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const num = (v,f=0) => Number.isFinite(Number(v)) ? Number(v) : f;
+  const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+  const d2r = d => d*Math.PI/180;
+  const fmt = v => !Number.isFinite(v) ? '—' : Math.abs(v)<5e-10 ? '0.00' : Math.abs(v)>=10000 ? v.toExponential(3) : v.toFixed(2);
+
+  function calc(){
+    const {s11,s22,t12,delta}=state;
+    const avg=(s11+s22)/2;
+    const half=(s11-s22)/2;
+    const R=Math.hypot(half,t12);
+    const initial2theta = (Math.abs(half)<1e-14 && Math.abs(t12)<1e-14) ? 0 : Math.atan2(t12,half)*180/Math.PI;
+    const total2theta=initial2theta+delta;
+    const theta=total2theta/2;
+    const c=Math.cos(d2r(total2theta)), s=Math.sin(d2r(total2theta));
+    const p1=avg+R, p2=avg-R;
+    const sx=avg+c*R, sy=avg-c*R, tt=s*R;
+    const vm=Math.sqrt(Math.max(0,s11*s11-s11*s22+s22*s22+3*t12*t12));
+    // Development crosscheck retained intentionally:
+    // von Mises computed from the principal stresses should match the direct
+    // plane-stress von Mises calculation above (apart from floating-point
+    // round-off). This was displayed during development to verify consistency,
+    // but is kept internal because it adds little value to the finished UI.
+    const vmCheck=Math.sqrt(Math.max(0,p1*p1-p1*p2+p2*p2));
+    return {avg,R,initial2theta,total2theta,theta,p1,p2,sx,sy,tt,vm,vmCheck};
+  }
+
+  function el(name,attrs={},text=''){
+    const e=document.createElementNS(NS,name);
+    Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,String(v)));
+    if(text)e.textContent=text;
+    return e;
+  }
+  const clear = s => { while(s.firstChild)s.removeChild(s.firstChild); };
+
+  function markers(svg){
+    const defs=el('defs');
+    const n=el('marker',{id:'arrowNormal',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
+    n.appendChild(el('path',{d:'M0 0 L10 5 L0 10 z',fill:'var(--accent)'}));
+    const sh=el('marker',{id:'arrowShear',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
+    sh.appendChild(el('path',{d:'M0 0 L10 5 L0 10 z',fill:'var(--accent2)'}));
+    defs.append(n,sh); svg.appendChild(defs);
+  }
+
+  function drawMohr(q){
+    const svg=$('mohrSvg'); clear(svg);
+    const W=440,H=330,L=48,R=18,T=18,B=42,pw=W-L-R,ph=H-T-B;
+    const mc=Math.max(1,Math.abs(q.p1),Math.abs(q.p2),Math.abs(q.avg)+q.R)*1.3;
+
+    // Use one common graphical scale for both stress axes.
+    // This keeps 1 MPa in the horizontal direction the same physical length
+    // as 1 MPa in the vertical direction, so the Mohr circle is truly circular.
+    const plotSize=Math.min(pw,ph);
+    const plotL=L+(pw-plotSize)/2;
+    const plotT=T+(ph-plotSize)/2;
+    const scale=plotSize/(2*mc);
+    const plotCx=plotL+plotSize/2;
+    const plotCy=plotT+plotSize/2;
+    const X=x=>plotCx+x*scale;
+    const Y=y=>plotCy-y*scale;
+
+    for(let i=-2;i<=2;i++){
+      const v=i*mc/2;
+      svg.appendChild(el('line',{x1:X(v),y1:plotT,x2:X(v),y2:plotT+plotSize,class:'gridline'}));
+      svg.appendChild(el('line',{x1:plotL,y1:Y(v),x2:plotL+plotSize,y2:Y(v),class:'gridline'}));
+    }
+    svg.appendChild(el('line',{x1:X(0),y1:plotT,x2:X(0),y2:plotT+plotSize,class:'axis'}));
+    svg.appendChild(el('line',{x1:plotL,y1:Y(0),x2:plotL+plotSize,y2:Y(0),class:'axis'}));
+
+    const radius=q.R*scale;
+    svg.appendChild(el('circle',{cx:X(q.avg),cy:Y(0),r:radius,class:'circle-main'}));
+
+    const a={x:state.s11,y:state.t12}, b={x:state.s22,y:-state.t12};
+    const initialLineLength=Math.hypot(X(b.x)-X(a.x),Y(b.y)-Y(a.y));
+    const initialDash=initialLineLength/15;
+    svg.appendChild(el('line',{x1:X(a.x),y1:Y(a.y),x2:X(b.x),y2:Y(b.y),class:'original-line','stroke-dasharray':`${initialDash} ${initialDash}`}));
+    svg.appendChild(el('circle',{cx:X(a.x),cy:Y(a.y),r:5,class:'secondary-point'}));
+    svg.appendChild(el('circle',{cx:X(b.x),cy:Y(b.y),r:5,class:'secondary-point'}));
+
+    const ar={x:q.sx,y:q.tt}, br={x:q.sy,y:-q.tt};
+    svg.appendChild(el('line',{x1:X(ar.x),y1:Y(ar.y),x2:X(br.x),y2:Y(br.y),class:'rotated-line'}));
+    svg.appendChild(el('circle',{cx:X(ar.x),cy:Y(ar.y),r:6,class:'current-point'}));
+    svg.appendChild(el('circle',{cx:X(br.x),cy:Y(br.y),r:6,class:'current-point'}));
+
+    svg.appendChild(el('circle',{cx:X(q.p1),cy:Y(0),r:3.5,class:'principal-point'}));
+    svg.appendChild(el('circle',{cx:X(q.p2),cy:Y(0),r:3.5,class:'principal-point'}));
+    svg.appendChild(el('text',{x:X(q.p1)+5,y:Y(0)-7},'σ1'));
+    svg.appendChild(el('text',{x:X(q.p2)+5,y:Y(0)-7},'σ2'));
+    svg.appendChild(el('text',{x:X(ar.x)+7,y:Y(ar.y)-7},"X′"));
+    svg.appendChild(el('text',{x:X(br.x)+7,y:Y(br.y)+16},"Y′"));
+    svg.appendChild(el('text',{x:W-82,y:H-8},'Normal stress'));
+    svg.appendChild(el('text',{x:12,y:22},'Shear stress'));
+  }
+
+  function rv(v,a){ const c=Math.cos(a),s=Math.sin(a); return {x:v.x*c-v.y*s,y:v.x*s+v.y*c}; }
+
+  function drawElement(q){
+    const svg=$('elementSvg'); clear(svg); markers(svg);
+    const cx=220,cy=165,h=66,a=-d2r(q.theta);
+    const ex=rv({x:1,y:0},a), ey=rv({x:0,y:-1},a);
+    const P=(x,y)=>({x:cx+ex.x*x+ey.x*y,y:cy+ex.y*x+ey.y*y});
+    const c=[P(-h,-h),P(h,-h),P(h,h),P(-h,h)];
+    svg.appendChild(el('polygon',{points:c.map(p=>`${p.x},${p.y}`).join(' '),class:'element-edge'}));
+
+    const ms=Math.max(1,Math.abs(q.p1),Math.abs(q.p2));
+    const nl=s=>18+34*Math.abs(s)/ms, sl=s=>12+32*Math.abs(s)/ms;
+    const faces=[
+      {m:P(h,0),n:ex,t:ey,sn:q.sx,st:q.tt},
+      {m:P(-h,0),n:{x:-ex.x,y:-ex.y},t:{x:-ey.x,y:-ey.y},sn:q.sx,st:q.tt},
+      {m:P(0,-h),n:{x:-ey.x,y:-ey.y},t:{x:-ex.x,y:-ex.y},sn:q.sy,st:q.tt},
+      {m:P(0,h),n:ey,t:ex,sn:q.sy,st:q.tt}
+    ];
+    faces.forEach(f=>{
+      const b={x:f.m.x+f.n.x*7,y:f.m.y+f.n.y*7}, L=nl(f.sn);
+      let p0,p1;
+      if(f.sn>=0){p0=b;p1={x:b.x+f.n.x*L,y:b.y+f.n.y*L};}
+      else{p0={x:b.x+f.n.x*L,y:b.y+f.n.y*L};p1=b;}
+      if(Math.abs(f.sn)>1e-12){
+        svg.appendChild(el('line',{x1:p0.x,y1:p0.y,x2:p1.x,y2:p1.y,class:'normal-arrow','marker-end':'url(#arrowNormal)'}));
+      }
+
+      const S=sl(f.st), dir=f.st>=0?1:-1, sc={x:f.m.x+f.n.x*13,y:f.m.y+f.n.y*13};
+      const s0={x:sc.x-f.t.x*S*.45*dir,y:sc.y-f.t.y*S*.45*dir};
+      const s1={x:sc.x+f.t.x*S*.55*dir,y:sc.y+f.t.y*S*.55*dir};
+      if(Math.abs(f.st)>1e-12){
+        svg.appendChild(el('line',{x1:s0.x,y1:s0.y,x2:s1.x,y2:s1.y,class:'shear-arrow','marker-end':'url(#arrowShear)'}));
+      }
+    });
+
+    const A=95;
+    svg.appendChild(el('line',{x1:cx,y1:cy,x2:cx+ex.x*A,y2:cy+ex.y*A,stroke:'#6b7280','stroke-dasharray':'4 4'}));
+    svg.appendChild(el('line',{x1:cx,y1:cy,x2:cx+ey.x*A,y2:cy+ey.y*A,stroke:'#6b7280','stroke-dasharray':'4 4'}));
+    svg.appendChild(el('text',{x:cx+ex.x*A+5,y:cy+ex.y*A},"x′"));
+    svg.appendChild(el('text',{x:cx+ey.x*A+5,y:cy+ey.y*A},"y′"));
+  }
+
+  function drawFailure(q){
+    const svg=$('failureSvg'); clear(svg);
+    const W=500,H=340,L=50,R=20,T=18,B=42,pw=W-L-R,ph=H-T-B;
+    const lim=Math.max(1,q.vm)*1.4;
+
+    // Use the same graphical scale on both principal-stress axes so that
+    // the y=x direction is visually 45 degrees and the criterion curves
+    // retain their correct aspect ratio.
+    const plotSize=Math.min(pw,ph);
+    const plotL=L+(pw-plotSize)/2;
+    const plotT=T+(ph-plotSize)/2;
+    const scale=plotSize/(2*lim);
+    const plotCx=plotL+plotSize/2;
+    const plotCy=plotT+plotSize/2;
+    const X=x=>plotCx+x*scale, Y=y=>plotCy-y*scale;
+
+    for(let i=-2;i<=2;i++){
+      const v=i*lim/2;
+      svg.appendChild(el('line',{x1:X(v),y1:plotT,x2:X(v),y2:plotT+plotSize,class:'gridline'}));
+      svg.appendChild(el('line',{x1:plotL,y1:Y(v),x2:plotL+plotSize,y2:Y(v),class:'gridline'}));
+    }
+    svg.appendChild(el('line',{x1:X(0),y1:plotT,x2:X(0),y2:plotT+plotSize,class:'axis'}));
+    svg.appendChild(el('line',{x1:plotL,y1:Y(0),x2:plotL+plotSize,y2:Y(0),class:'axis'}));
+
+    const vp=[];
+    for(let i=0;i<=240;i++){
+      const a=2*Math.PI*i/240, den=Math.sqrt(Math.max(1e-12,1-.5*Math.sin(2*a))), r=q.vm/den;
+      vp.push([X(r*Math.cos(a)),Y(r*Math.sin(a))]);
+    }
+    svg.appendChild(el('polyline',{points:vp.map(p=>p.join(',')).join(' '),class:'vm-line'}));
+
+    const t=q.vm, verts=[[t,0],[t,t],[0,t],[-t,0],[-t,-t],[0,-t],[t,0]];
+    svg.appendChild(el('polyline',{points:verts.map(p=>`${X(p[0])},${Y(p[1])}`).join(' '),class:'tresca-line'}));
+    svg.appendChild(el('circle',{cx:X(q.p1),cy:Y(q.p2),r:6,class:'current-point'}));
+    svg.appendChild(el('text',{x:X(q.p1)+8,y:Y(q.p2)-7},'current state'));
+    svg.appendChild(el('text',{x:W-55,y:H-8},'σ1'));
+    svg.appendChild(el('text',{x:10,y:25},'σ2'));
+  }
+
+  function tensor(a,b,c,d){ return `<span>${fmt(a)}</span><span>${fmt(b)}</span><span>${fmt(c)}</span><span>${fmt(d)}</span>`; }
+
+  function render(){
+    const q=calc();
+    $('avgOut').textContent=fmt(q.avg); $('radOut').textContent=fmt(q.R);
+    $('p1Out').textContent=fmt(q.p1); $('p2Out').textContent=fmt(q.p2);
+    $('sxOut').textContent=fmt(q.sx); $('syOut').textContent=fmt(q.sy); $('ttOut').textContent=fmt(q.tt);
+    $('vmOut').textContent=fmt(q.vm); $('initialAngleOut').textContent=fmt(q.initial2theta);
+    $('deltaBadge').textContent=`Δ2θ = ${fmt(state.delta)}°`;
+    $('mohrAngleBadge').textContent=`2θ = ${fmt(q.total2theta)}°`;
+    $('cubeAngleBadge').textContent=`θ = ${fmt(q.theta)}°`;
+    $('tensorOriginal').innerHTML=tensor(state.s11,state.t12,state.t12,state.s22);
+    $('tensorOriginalLeft').innerHTML=tensor(state.s11,state.t12,state.t12,state.s22);
+    $('tensorHydro').innerHTML=tensor(q.avg,0,0,q.avg);
+    $('tensorDev').innerHTML=tensor(state.s11-q.avg,state.t12,state.t12,state.s22-q.avg);
+    drawMohr(q); drawElement(q); drawFailure(q);
+  }
+
+  function sync(){
+    $('s11').value=state.s11; $('s22').value=state.s22; $('t12').value=state.t12;
+    $('delta').value=state.delta; $('deltaNumber').value=state.delta;
+  }
+  function setDelta(v){ state.delta=clamp(num(v,0),-90,90); sync(); render(); }
+
+  function stopAnimation(){
+    if(animationTimer===null) return;
+    clearInterval(animationTimer);
+    animationTimer=null;
+    setDelta(animationStartDelta);
+  }
+
+  function startAnimation(){
+    if(animationTimer!==null) stopAnimation();
+    animationStartDelta=state.delta;
+    animationDirection=1;
+    animationPauseUntil=0;
+    ignoreNextPageClick=true;
+
+    animationTimer=setInterval(()=>{
+      if(performance.now()<animationPauseUntil) return;
+
+      let next=state.delta+animationDirection;
+
+      if(next>=90){
+        next=90;
+        animationDirection=-1;
+        animationPauseUntil=performance.now()+64;
+      } else if(next<=-90){
+        next=-90;
+        animationDirection=1;
+        animationPauseUntil=performance.now()+64;
+      }
+
+      setDelta(next);
+    },16);
+  }
+
+  ['s11','s22','t12'].forEach(id=>{
+    $(id).addEventListener('input',()=>{ state[id]=num($(id).value,0); render(); });
+  });
+  $('delta').addEventListener('input',()=>setDelta($('delta').value));
+  $('deltaNumber').addEventListener('input',()=>setDelta($('deltaNumber').value));
+  document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>setDelta(state.delta+num(b.dataset.step))));
+  $('zeroAngle').addEventListener('click',()=>setDelta(0));
+
+  $('principalToInput').addEventListener('click',()=>{
+    const q=calc(); state.s11=q.p1; state.s22=q.p2; state.t12=0; state.delta=0; sync(); render();
+  });
+  $('rotatedToInput').addEventListener('click',()=>{
+    const q=calc(); state.s11=q.sx; state.s22=q.sy; state.t12=q.tt; state.delta=0; sync(); render();
+  });
+  $('animateButton').addEventListener('click',()=>{
+    startAnimation();
+  });
+
+  document.addEventListener('click',()=>{
+    if(ignoreNextPageClick){
+      ignoreNextPageClick=false;
+      return;
+    }
+    if(animationTimer!==null) stopAnimation();
+  });
+
+  sync(); render();
+})();
+</script>
+</body>
+</html>
