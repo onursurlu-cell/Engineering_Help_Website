@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bolt Pretension / External Load</title>
+<style>
+:root{
+  --bg:#f7f8fa;--panel:#fff;--text:#1f2937;--muted:#6b7280;--border:#d1d5db;
+  --bolt:#ff0000;--plate:#7030a0;--external:#a5a5a5;--preload:#ffc000;
+  --helper:#00b0f0;--vertical:#70ad47;--marker:#111827;--accent:#2563eb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrapper{max-width:1500px;margin:0 auto;padding:18px}
+h1{margin:0 0 5px;font-size:28px}.sub{color:var(--muted);margin-bottom:14px}
+.note{background:#eef4ff;border:1px solid #bfd2ff;padding:11px 14px;border-radius:10px;margin-bottom:14px}
+.layout{display:grid;grid-template-columns:270px 1fr;gap:16px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
+.section-title{font-weight:700;font-size:17px;margin-bottom:10px}
+label{display:block;font-size:13px;margin:9px 0 4px}
+input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:15px}
+button{padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:wait}
+.visuals{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+svg{width:100%;height:auto;display:block}
+.results{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-top:12px}
+.metric{border:1px solid var(--border);border-radius:9px;padding:8px;text-align:center;background:#fff}
+.metric .k{font-size:12px;color:var(--muted)}.metric .v{font-size:18px;font-weight:650;margin-top:3px}
+.legend{display:flex;flex-wrap:wrap;gap:13px;font-size:12px;margin-top:5px}
+.sw{display:inline-block;width:24px;height:3px;vertical-align:middle;margin-right:5px}
+.status{margin-top:10px;font-weight:650}.status.sep{color:#b91c1c}.status.clamped{color:#166534}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.error{color:#b91c1c;font-size:13px;margin-top:8px;min-height:18px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+.modal.open{display:flex}.modalbox{background:#fff;max-width:1200px;width:100%;max-height:92vh;border-radius:12px;padding:14px;overflow:auto}
+.modalhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.theorygrid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:12px}
+.theorygrid img{width:100%;border:1px solid #ddd;border-radius:7px;background:#fff}
+.small{font-size:12px;color:var(--muted)}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.visuals{grid-template-columns:1fr}.results{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>Bolt Pretension / External Load</h1>
+  <div class="sub">Interactive training visualization of a preloaded bolted joint under external tensile load</div>
+  <div class="note"><b>Training / visualization tool.</b> The calculation engine is executed on a private server. This public page contains the interface and graphics, but not the core calculation formulas.</div>
+
+  <div class="layout">
+    <aside class="panel">
+      <div class="section-title">Input parameters</div>
+
+      <label>Bolt diameter (mm)</label>
+      <input id="bolt_diameter_mm" type="number" step="1" value="10">
+
+      <label>Bolt material E (MPa)</label>
+      <input id="bolt_E_MPa" type="number" step="1000" value="210000">
+
+      <label>Plate thickness / grip length (mm)</label>
+      <input id="plate_thickness_mm" type="number" step="1" value="40">
+
+      <label>Contact radius (mm)</label>
+      <input id="contact_radius_mm" type="number" step="0.5" value="8">
+
+      <label>Pressure-cone half-angle (deg)</label>
+      <input id="pressure_cone_half_angle_deg" type="number" step="1" value="30">
+
+      <label>Plate material E (MPa)</label>
+      <input id="plate_E_MPa" type="number" step="1000" value="70000">
+
+      <label>External load (N)</label>
+      <input id="external_load_N" type="number" step="100" value="1000">
+
+      <label>Bolt preload (N)</label>
+      <input id="bolt_preload_N" type="number" step="100" value="1000">
+
+      <div class="actions">
+        <button id="calc" class="primary">Calculate</button>
+        <button id="theory">View calculation / theory</button>
+      </div>
+      <div id="error" class="error"></div>
+      <div class="small">Number fields support keyboard arrows and, depending on browser/OS, mouse-wheel changes while focused.</div>
+    </aside>
+
+    <main>
+      <div class="visuals">
+        <section class="panel">
+          <div class="section-title">Load–displacement diagram</div>
+          <svg id="chart" viewBox="0 0 650 420" aria-label="Bolt and plate load displacement diagram"></svg>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--bolt)"></i>Bolt line</span>
+            <span><i class="sw" style="background:var(--plate)"></i>Plate line</span>
+            <span><i class="sw" style="background:var(--external)"></i>External force</span>
+            <span><i class="sw" style="background:var(--preload)"></i>Bolt preload</span>
+            <span><i class="sw" style="background:var(--helper)"></i>Preload extension</span>
+            <span><i class="sw" style="background:var(--vertical)"></i>Preload vertical</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-title">Joint visualization</div>
+          <svg id="joint" viewBox="0 0 520 420" aria-label="Bolted joint visualization"></svg>
+          <div id="jointStatus" class="status"></div>
+        </section>
+      </div>
+
+      <div class="results">
+        <div class="metric"><div class="k">Bolt stiffness kb</div><div class="v" id="kb">—</div><div class="k">N/mm</div></div>
+        <div class="metric"><div class="k">Plate stiffness kp</div><div class="v" id="kp">—</div><div class="k">N/mm</div></div>
+        <div class="metric"><div class="k">Stiffness ratio φ</div><div class="v" id="phi">—</div></div>
+        <div class="metric"><div class="k">Separation load</div><div class="v" id="fsep">—</div><div class="k">N</div></div>
+        <div class="metric"><div class="k">Clamp load</div><div class="v" id="fclamp">—</div><div class="k">N</div></div>
+        <div class="metric"><div class="k">Bolt tensile load</div><div class="v" id="fbolt">—</div><div class="k">N</div></div>
+        <div class="metric"><div class="k">Bolt displacement</div><div class="v" id="disp">—</div><div class="k">mm</div></div>
+        <div class="metric"><div class="k">Bolt stress</div><div class="v" id="stress">—</div><div class="k">MPa</div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modalbox">
+    <div class="modalhead"><div><b>Calculation / theory material</b><div class="small">These images are intentionally public so engineers can study the method.</div></div><button id="closeModal">Close</button></div>
+    <div class="theorygrid">
+      <img src="assets/image1.png" alt="Pressure cone stiffness derivation">
+      <img src="assets/image3.png" alt="Assumptions and geometry">
+      <img src="assets/image4.jpeg" alt="Handwritten calculation derivation page 1">
+      <img src="assets/image5.jpeg" alt="Handwritten calculation derivation page 2">
+      <img src="assets/image2.png" alt="Original geometry sketch">
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  PUBLIC FRONT END ONLY.
+  No bolt-joint calculation equations are implemented in this file.
+  The private server returns results and drawing coordinates.
+*/
+const API_URL = "https://engineeringhelpprivatebackend-production.up.railway.app/calculate";
+
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const fmt = (x,d=2) => (typeof x==="number" && Number.isFinite(x)) ? x.toFixed(d) : String(x ?? "—");
+function el(name, attrs={}){const e=document.createElementNS(NS,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e}
+function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
+function inputData(){
+  return {
+    bolt_diameter_mm:+$("bolt_diameter_mm").value,
+    bolt_E_MPa:+$("bolt_E_MPa").value,
+    plate_thickness_mm:+$("plate_thickness_mm").value,
+    contact_radius_mm:+$("contact_radius_mm").value,
+    pressure_cone_half_angle_deg:+$("pressure_cone_half_angle_deg").value,
+    plate_E_MPa:+$("plate_E_MPa").value,
+    external_load_N:+$("external_load_N").value,
+    bolt_preload_N:+$("bolt_preload_N").value
+  }
+}
+
+function drawChart(p){
+  const svg=$("chart"); clear(svg);
+  const W=650,H=420,L=65,R=22,T=25,B=55,pw=W-L-R,ph=H-T-B;
+  const xmax=Math.max(p.xmax,1e-12), ymax=Math.max(p.ymax,1e-12);
+  const X=x=>L+x/xmax*pw, Y=y=>T+(ymax-y)/ymax*ph;
+
+  for(let i=0;i<=5;i++){
+    const xv=xmax*i/5, yv=ymax*i/5;
+    svg.appendChild(el("line",{x1:X(xv),y1:T,x2:X(xv),y2:T+ph,stroke:"#e5e7eb"}));
+    svg.appendChild(el("line",{x1:L,y1:Y(yv),x2:L+pw,y2:Y(yv),stroke:"#e5e7eb"}));
+    const tx=el("text",{x:X(xv),y:T+ph+20,"text-anchor":"middle",fill:"#6b7280","font-size":"11"});tx.textContent=fmt(xv,4);svg.appendChild(tx);
+    const ty=el("text",{x:L-8,y:Y(yv)+4,"text-anchor":"end",fill:"#6b7280","font-size":"11"});ty.textContent=fmt(yv,0);svg.appendChild(ty);
+  }
+  svg.appendChild(el("line",{x1:L,y1:T+ph,x2:L+pw,y2:T+ph,stroke:"#374151","stroke-width":"1.3"}));
+  svg.appendChild(el("line",{x1:L,y1:T,x2:L,y2:T+ph,stroke:"#374151","stroke-width":"1.3"}));
+
+  function line(points, color, width=3, dash=""){
+    if(!points || points.length<2)return;
+    const d=points.map((q,i)=>(i?"L":"M")+X(q.x)+" "+Y(q.y)).join(" ");
+    const path=el("path",{d,fill:"none",stroke:color,"stroke-width":width,"stroke-linecap":"round"});
+    if(dash)path.setAttribute("stroke-dasharray",dash);
+    svg.appendChild(path);
+  }
+  line(p.bolt_line,"#ff0000",3);
+  line(p.plate_line,"#7030a0",3);
+  line(p.external_force_line,"#a5a5a5",2);
+  line(p.preload_line,"#ffc000",2,"3 6");
+  line(p.preload_extension,"#00b0f0",4,"10 6");
+  line(p.preload_vertical,"#70ad47",2);
+  line(p.current_marker,"#111827",6);
+
+  const op=p.operating_point;
+  svg.appendChild(el("circle",{cx:X(op.x),cy:Y(op.y),r:6,fill:"#111827",stroke:"#fff","stroke-width":2}));
+
+  let t=el("text",{x:W/2,y:H-8,"text-anchor":"middle",fill:"#374151","font-size":"13"});t.textContent="Bolt displacement (mm)";svg.appendChild(t);
+  t=el("text",{x:16,y:H/2,transform:`rotate(-90 16 ${H/2})`,"text-anchor":"middle",fill:"#374151","font-size":"13"});t.textContent="Load (N)";svg.appendChild(t);
+}
+
+function drawJoint(v){
+  const svg=$("joint");
+  clear(svg);
+
+  /*
+    Joint visualization reconstructed from the geometry helper cells
+    and shape definitions in the original Excel workbook.
+
+    IMPORTANT:
+    - Engineering calculations are NOT changed here.
+    - Only the DISPLAY displacement is limited after separation so the
+      figure can never run outside the fixed SVG viewBox.
+  */
+
+  // Excel helper geometry, scaled into the SVG.
+  // Original workbook base values: b1=1050, b2=100, a1=150, a2=100.
+  const x0=1050, y0=100, sx=1.10, sy=1.00;
+  const X=x=>70+(x-x0)*sx;
+  const Y=y=>70+(y-y0)*sy;
+  const Sx=w=>w*sx;
+  const Sy=h=>h*sy;
+
+  // Excel B210..B213 behaviour, represented dimensionlessly by the API.
+  const comp=Math.max(0,Math.min(1,v.compression_fraction||0));
+  const rawSep=Math.max(0,v.separation_fraction||0);
+
+  // Excel uses a 50-unit graphical grade up to separation.
+  // After separation Excel keeps translating indefinitely; web display is capped.
+  const sepDisplay=Math.min(rawSep,1.0); // display only; does NOT cap calculation
+  const B210=v.separated ? 50*(1+sepDisplay) : 50*comp;
+  const B211=v.separated ? 0 : 50*comp;
+  const B212=v.separated ? 50 : 0;
+  const B213=v.separated ? 50*sepDisplay : 0;
+
+  // Workbook plate-colour helper B214 runs from 0 to 20.
+  // Anchor the colour scale so the baseline workbook state (~15/20)
+  // reproduces its stored light-purple fill (#D2BFE0).
+  const grade=Math.max(0,Math.min(20,Math.round(((B211+B212)/50)*20)));
+  const t=grade/20;
+  const lerp=(a,b,u)=>Math.round(a+(b-a)*u);
+  const purpleStart=[156,116,191];   // stronger purple at preload
+  const purpleEnd=[228,216,235];     // pale purple at separation
+  const rightFill=`rgb(${lerp(purpleStart[0],purpleEnd[0],t)},${lerp(purpleStart[1],purpleEnd[1],t)},${lerp(purpleStart[2],purpleEnd[2],t)})`;
+
+  const leftFill="#8c8c8c";
+  const outline="#111827";
+  const red="#ff0000";
+  const dashed="#1f4e79";
+  const externalBlue="#4472c4";
+  const clampGrey="#595959";
+
+  // Excel shape helper table (rows 201..207).
+  const shapes={
+    r1:{x:1050,y:100,w:150,h:100},
+    r2:{x:1050,y:250,w:150,h:100},
+    r3:{x:1200+B213,y:100,w:90+B211+B212,h:100},
+    r4:{x:1200+B213,y:250,w:90+B211+B212,h:100},
+    r5:{x:1087.5,y:200,w:202.5+B210,h:50},
+    r6:{x:1290+B210,y:166.6666667,w:60,h:116.6666667},
+    r7:{x:1200,y:100,w:90,h:250}
+  };
+
+  function rect(q,fill,stroke=outline,sw=2.2,dash=""){
+    const r=el("rect",{x:X(q.x),y:Y(q.y),width:Sx(q.w),height:Sy(q.h),fill,stroke,"stroke-width":sw});
+    if(dash) r.setAttribute("stroke-dasharray",dash);
+    svg.appendChild(r);
+    return r;
+  }
+
+  // Draw the workbook members first.
+  rect(shapes.r1,leftFill);
+  rect(shapes.r2,leftFill);
+  rect(shapes.r3,rightFill);
+  rect(shapes.r4,rightFill);
+
+  // Dashed outline = original/reference position of the right-hand member.
+  rect(shapes.r7,"none",dashed,1.8,"7 6");
+
+  // Red bolt shank and right-hand end piece, as in the Excel visualization.
+  rect(shapes.r5,red);
+  rect(shapes.r6,red);
+
+  // Excel-style arrow helper. The shaft stops at the BASE of the triangular
+  // arrowhead, so no line runs through and blunts the sharp tip.
+  function arrow(x1,y1,x2,y2,color,width=5,headLen=15,headHalf=8){
+    const dx=x2-x1, dy=y2-y1;
+    const L=Math.hypot(dx,dy) || 1;
+    const ux=dx/L, uy=dy/L;
+    const bx=x2-ux*headLen, by=y2-uy*headLen;
+    const px=-uy, py=ux;
+
+    svg.appendChild(el("line",{
+      x1,y1,x2:bx,y2:by,stroke:color,"stroke-width":width,"stroke-linecap":"butt"
+    }));
+    svg.appendChild(el("polygon",{
+      points:`${x2},${y2} ${bx+px*headHalf},${by+py*headHalf} ${bx-px*headHalf},${by-py*headHalf}`,
+      fill:color
+    }));
+  }
+
+  // The common vertical reference line in the Excel figure.
+  // Blue arrow STARTS here; black arrow STARTS here and points left;
+  // grey arrow ENDS here with its sharp tip touching this line.
+  const referenceX=X(shapes.r6.x);
+  const shankY=Y(225);
+  const lowerGapY=Y(265);
+  const blueY=Y(145);
+
+  // Keep the complete blue arrow and its value visible inside the SVG.
+  const blueTip=Math.min(455,referenceX+62);
+  arrow(referenceX,blueY,blueTip,blueY,externalBlue,6,15,8);
+
+  // Bolt tensile-load arrow: starts on the SAME vertical line and points left.
+  arrow(referenceX,shankY,X(1200),shankY,"#000000",5,15,8);
+
+  // Clamp/compressive plate-force arrow: its SHARP TIP touches the SAME
+  // vertical line. This reproduces the Excel geometry exactly.
+  if(!v.separated){
+    arrow(X(1225),lowerGapY,referenceX,lowerGapY,clampGrey,5,15,8);
+  }
+
+  // Labels corresponding to the Excel figure.
+  const r=window.__lastResults || null;
+  if(r){
+    // Blue external-load value, just to the right of its arrow tip.
+    const extText=el("text",{x:Math.min(510,blueTip+12),y:blueY+6,fill:"#000","font-size":"16","text-anchor":"start"});
+    extText.textContent=fmt(+$('external_load_N').value,0);
+    svg.appendChild(extText);
+
+    // Bolt-force value centred on the red right-hand end piece, like Excel.
+    const boltText=el("text",{
+      x:X(shapes.r6.x)+Sx(shapes.r6.w)/2,
+      y:shankY+6,fill:"#000","font-size":"16","text-anchor":"middle"
+    });
+    boltText.textContent=fmt(r.bolt_tensile_load_N,1);
+    svg.appendChild(boltText);
+
+    if(!v.separated && typeof r.clamp_load_N==="number"){
+      const clampText=el("text",{x:referenceX-10,y:lowerGapY+28,fill:"#111827","font-size":"16","text-anchor":"end"});
+      clampText.textContent=fmt(r.clamp_load_N,1);
+      svg.appendChild(clampText);
+    }
+  }
+
+  // Small state cue below the figure, outside the mechanics drawing.
+  const state=el("text",{x:260,y:395,"text-anchor":"middle",fill:v.separated?"#b91c1c":"#166534","font-size":"15","font-weight":"600"});
+  state.textContent=v.separated?"Joint separated":"Clamped joint";
+  svg.appendChild(state);
+}
+function showResults(data){
+  const r=data.results;
+  window.__lastResults=r;
+  $("kb").textContent=fmt(r.bolt_stiffness_N_per_mm,1);
+  $("kp").textContent=fmt(r.plate_stiffness_N_per_mm,1);
+  $("phi").textContent=fmt(r.stiffness_ratio_phi,4);
+  $("fsep").textContent=fmt(r.separation_external_load_N,1);
+  $("fclamp").textContent=typeof r.clamp_load_N==="number"?fmt(r.clamp_load_N,1):"Separated";
+  $("fbolt").textContent=fmt(r.bolt_tensile_load_N,1);
+  $("disp").textContent=fmt(r.bolt_displacement_mm,5);
+  $("stress").textContent=fmt(r.bolt_stress_MPa,1);
+  $("jointStatus").textContent=r.separated?"Separated — clamping force is zero":"Clamped — compressive plate force remains";
+  $("jointStatus").className="status "+(r.separated?"sep":"clamped");
+  drawChart(data.plot); drawJoint(data.joint_visual);
+}
+
+async function calculate(){
+  $("error").textContent="";
+  $("calc").disabled=true;
+  try{
+    const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(inputData())});
+    if(!res.ok){let d={};try{d=await res.json()}catch{};throw new Error(d.detail||`Server returned ${res.status}`)}
+    showResults(await res.json());
+  }catch(err){
+    $("error").textContent="Calculation server unavailable: "+err.message;
+  }finally{$("calc").disabled=false}
+}
+$("calc").addEventListener("click",calculate);
+$("theory").addEventListener("click",()=>$("modal").classList.add("open"));
+$("closeModal").addEventListener("click",()=>$("modal").classList.remove("open"));
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))$("modal").classList.remove("open")});
+</script>
+</body>
+</html>
