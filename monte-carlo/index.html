@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monte Carlo Tolerance Calculation</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#d1d5db; --bg:#f7f8fa;
+    --card:#ffffff; --accent:#2563eb;
+    --blue:#2a78d6; --orange:#eb6834; --cap:#898781;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--ink);}
+  .wrapper{max-width:1200px; margin:0 auto; padding:32px 24px 60px;}
+  h1{margin:0 0 4px; font-size:30px;}
+  .subtitle{color:var(--muted); font-size:15px; margin-bottom:28px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px;}
+
+  .shared-process{padding:16px 20px; margin-bottom:22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .shared-process .label{font-size:13px; color:var(--muted); font-weight:600;}
+  .shared-process .label .note{display:block; font-weight:400; font-size:11px; color:var(--muted); margin-top:2px;}
+  .radio-row{display:flex; gap:20px; flex-wrap:wrap;}
+  .radio-row label{display:flex; align-items:center; gap:6px; font-size:14px;}
+  .radio-row.disabled label{opacity:.45; cursor:not-allowed;}
+  .cp-hint{font-size:12px; color:var(--muted);}
+  .cp-hint.disabled{opacity:.45;}
+
+  .parts-row{display:flex; gap:20px; margin-bottom:22px;}
+  .part-card{flex:1 1 0; padding:20px; min-width:0;}
+  .part-card h2{margin:0 0 2px; font-size:19px;}
+  .part-sub{color:var(--muted); font-size:12.5px; margin-bottom:14px;}
+
+  .dist-row{margin-bottom:16px;}
+  .inputs-row{display:flex; gap:14px; margin-bottom:18px; flex-wrap:wrap;}
+  .field{display:flex; flex-direction:column; gap:4px;}
+  .field label{font-size:12px; color:var(--muted);}
+  .field .box-row{display:flex; align-items:center; gap:6px;}
+  .field input{width:78px; padding:7px 9px; border:1px solid var(--line); border-radius:8px; font-size:14px; color:var(--ink);}
+  .field input.invalid{border-color:#d03b3b; background:#fff5f5;}
+  .pm{font-size:15px; color:var(--muted); font-weight:600;}
+
+  /* histogram */
+  .hist-scroll{overflow-x:auto;}
+  .hist{height:580px; display:flex; align-items:flex-end; gap:2px; border-bottom:1px solid var(--line); position:relative; width:max-content;}
+  .bin-col{width:22px; height:580px; position:relative;}
+  /* Part 1/Part 2 are deterministic (hard ceiling 160 parts at worst), so they get
+     a much shorter chart than Assembly (a genuine random simulation, ~221.6 worst
+     case) — see PART_CAP/ASSY_CAP in the script. 170 ticks * 2px = 340px. */
+  #p1Hist, #p2Hist{height:340px;}
+  #p1Hist .bin-col, #p2Hist .bin-col{height:340px;}
+  .tick{position:absolute; left:0; right:0; height:1px;}
+  .tick.blue{background:var(--blue); width:11px; margin:0 auto; left:0; right:0;}
+  .tick.orange{background:var(--orange); width:11px; margin:0 auto; left:0; right:0;}
+  .tick.assy{background:linear-gradient(to right, var(--blue) 50%, var(--orange) 50%); width:22px;}
+  .tick.cap{background:var(--cap) !important; height:2px;}
+
+  /* flight animation (Pass 2): flyers are position:fixed, viewport-coordinate elements */
+  .flyer{position:fixed; height:2px; border-radius:1px; pointer-events:none; z-index:500; top:0; left:0; will-change:transform;}
+  .flyer.blue{background:var(--blue);}
+  .flyer.orange{background:var(--orange);}
+
+  .dimqty{display:flex; gap:2px; margin-top:4px; width:max-content;}
+  .dimqty .col{width:22px; text-align:center; font-size:9px; color:var(--muted); line-height:1.5;}
+  .dimqty .col .q{display:block; font-variant-numeric:tabular-nums;}
+
+  .below-hist{display:flex; gap:14px; margin-top:14px; flex-wrap:wrap;}
+  .mini-stat{flex:1 1 160px; background:#f3f4f6; border-radius:8px; padding:10px 12px;}
+  .mini-stat .k{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+  .mini-stat .v{font-size:12.5px; margin-top:3px; line-height:1.5;}
+
+  .calc-row{display:flex; justify-content:center; margin:8px 0 26px; text-align:center;}
+  .calc-btn{background:var(--accent); color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; padding:12px 32px; cursor:pointer; max-width:480px;}
+  .calc-btn:disabled{opacity:.55; cursor:default;}
+  .calc-hint{font-size:12px; color:var(--muted); margin-top:8px;}
+
+  .assy-section{padding:22px; max-width:720px; margin:0 auto;}
+  .assy-section h2{margin:0 0 4px; font-size:19px; text-align:center;}
+  .assy-section .assy-sub{text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:16px;}
+  .assy-legend{text-align:center; font-size:11.5px; color:var(--muted); margin-top:6px;}
+  .assy-legend .sw{display:inline-block; width:9px; height:9px; border-radius:2px; margin:0 3px -1px 10px;}
+  .assy-legend .sw.b{background:var(--blue); margin-left:0;}
+  .assy-legend .sw.o{background:var(--orange);}
+  .hist-center{display:flex; justify-content:center;}
+
+  .compare-row{display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;}
+  .compare-tile{flex:1 1 0; background:#f3f4f6; border-radius:8px; padding:12px 14px; text-align:center;}
+  .compare-tile .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+  .compare-tile .v{font-size:17px; font-weight:600; margin-top:4px;}
+  .compare-tile.actual{background:#eaf1fd;}
+  .compare-tile .workings{font-size:11px; color:var(--muted); margin-top:8px; line-height:1.6; font-variant-numeric:tabular-nums;}
+  .na{font-size:13px !important; font-weight:400 !important; color:var(--muted) !important;}
+
+  @media (max-width: 720px){ .parts-row{flex-direction:column;} }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <h1>Monte Carlo Tolerance Calculation</h1>
+  <div class="subtitle">Interactive tolerance-stack simulation for Part 1 + Part 2 assemblies</div>
+
+  <div class="card shared-process">
+    <div class="label">Manufacturing process<span class="note" id="procNote">shared — applies to Part 1 and Part 2 at once</span></div>
+    <div class="radio-row">
+      <label><input type="radio" name="proc" value="3" id="proc3" checked> ±3σ process</label>
+      <label><input type="radio" name="proc" value="4" id="proc4"> ±4σ process</label>
+    </div>
+    <div class="cp-hint" id="cpSharedHint">Cp = 1.00</div>
+  </div>
+
+  <div class="parts-row">
+    <div class="card part-card" data-part="1">
+      <h2>Part 1</h2>
+      <div class="part-sub" id="p1Sub">1008 manufactured parts with a manufacturing process of ±3σ.</div>
+      <div class="dist-row">
+        <div class="radio-row">
+          <label><input type="radio" name="dist1" value="normal" id="p1Normal" checked> Normal Distribution</label>
+          <label><input type="radio" name="dist1" value="uniform" id="p1Uniform"> Linear Distribution</label>
+        </div>
+      </div>
+      <div class="inputs-row">
+        <div class="field"><label>Dimension</label><div class="box-row"><input type="text" id="p1Dim" value="10"></div></div>
+        <div class="field"><label>Tolerance</label><div class="box-row"><span class="pm">±</span><input type="text" id="p1Tol" value="2"></div></div>
+      </div>
+      <div class="hist-scroll"><div class="hist" id="p1Hist"></div></div>
+      <div class="dimqty" id="p1DimQty"></div>
+      <div class="below-hist" id="p1Stats"></div>
+    </div>
+
+    <div class="card part-card" data-part="2">
+      <h2>Part 2</h2>
+      <div class="part-sub" id="p2Sub">1008 manufactured parts with a manufacturing process of ±3σ.</div>
+      <div class="dist-row">
+        <div class="radio-row">
+          <label><input type="radio" name="dist2" value="normal" id="p2Normal" checked> Normal Distribution</label>
+          <label><input type="radio" name="dist2" value="uniform" id="p2Uniform"> Linear Distribution</label>
+        </div>
+      </div>
+      <div class="inputs-row">
+        <div class="field"><label>Dimension</label><div class="box-row"><input type="text" id="p2Dim" value="16"></div></div>
+        <div class="field"><label>Tolerance</label><div class="box-row"><span class="pm">±</span><input type="text" id="p2Tol" value="1"></div></div>
+      </div>
+      <div class="hist-scroll"><div class="hist" id="p2Hist"></div></div>
+      <div class="dimqty" id="p2DimQty"></div>
+      <div class="below-hist" id="p2Stats"></div>
+    </div>
+  </div>
+
+  <div class="calc-row">
+    <div>
+      <button class="calc-btn" id="assembleBtn">Assemble picking from Part 1 and Part 2 bins randomly</button>
+      <div class="calc-hint" id="assembleHint">Click again any time after a run finishes to reset and try a new random pairing.</div>
+    </div>
+  </div>
+
+  <div class="card assy-section">
+    <h2>Assembly — Part 1 + Part 2</h2>
+    <div class="assy-sub">1008 randomly paired trials, drawn from the two histograms above</div>
+    <div class="hist-scroll hist-center"><div class="hist" id="assyHist"></div></div>
+    <div class="dimqty" id="assyDimQty" style="justify-content:center; margin:4px auto 0;"></div>
+    <div class="assy-legend"><span class="sw b"></span>Part 1 contribution<span class="sw o"></span>Part 2 contribution</div>
+
+    <div class="compare-row">
+      <div class="compare-tile">
+        <div class="k">Worst-case</div>
+        <div class="v" id="worstVal">—</div>
+      </div>
+      <div class="compare-tile" id="rssTile">
+        <div class="k">RSS-predicted</div>
+        <div class="v" id="rssVal">—</div>
+        <div class="workings" id="rssWorkings"></div>
+      </div>
+      <div class="compare-tile actual">
+        <div class="k">Actual (this run)</div>
+        <div class="v" id="actualVal">— (not run yet)</div>
+        <div class="workings" id="actualWorkings"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+/* ---------- math ---------- */
+function erf(x){
+  const sign = x < 0 ? -1 : 1; x = Math.abs(x);
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const t = 1/(1+p*x);
+  const y = 1 - (((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function phi(z){ return 0.5*(1+erf(z/Math.sqrt(2))); }
+
+const N_BINS = 21, TOTAL = 1008;
+const PITCH = 2; // px per tick-slot in the stack (chart height = cap * PITCH)
+// Part 1/Part 2 are deterministic, not random — their true worst-case peak is a
+// hard ceiling (160 parts at ±4σ, 120 at ±3σ, verified exactly across every
+// tolerance value, no floating-point flicker), so they get their own, much
+// shorter allowance with a little headroom above that hard number. Assembly is
+// a genuine random simulation each run (expected worst-case peak ≈221.6, ±~13
+// spread), so it keeps the taller, probability-based ceiling.
+const PART_CAP = 170, ASSY_CAP = 290;
+
+function computeNormalBins(tol, k){
+  const step = 2*tol/(N_BINS-1);
+  const dims = Array.from({length:N_BINS}, (_,i)=> -tol + i*step);
+  const sigma = tol/k;
+  const edges = [];
+  for(let i=0;i<N_BINS-1;i++) edges.push((dims[i]+dims[i+1])/2);
+  const lows = [-Infinity, ...edges];
+  const highs = [...edges, Infinity];
+  const raw = lows.map((lo,i)=> phi(highs[i]/sigma) - phi(lo/sigma));
+  const tot = raw.reduce((a,b)=>a+b,0);
+  const frac = raw.map(r=>r/tot);
+  const base = frac.map(f=>Math.floor(f*TOTAL));
+  const rema = frac.map((f,i)=> f*TOTAL - base[i]);
+  let deficit = TOTAL - base.reduce((a,b)=>a+b,0);
+  const order = rema.map((r,i)=>[r,i]).sort((a,b)=>b[0]-a[0]);
+  for(let i=0;i<deficit;i++) base[order[i][1]]++;
+  return {dims, counts:base};
+}
+function computeUniformBins(tol){
+  const step = 2*tol/(N_BINS-1);
+  const dims = Array.from({length:N_BINS}, (_,i)=> -tol + i*step);
+  const base = Math.floor(TOTAL/N_BINS);
+  const counts = Array(N_BINS).fill(base);
+  let deficit = TOTAL - base*N_BINS;
+  for(let i=0;i<deficit;i++) counts[Math.floor(N_BINS/2)+i]++; // 1008/21 is exact so deficit is always 0
+  return {dims, counts};
+}
+function escapeeCounts(dist, k){
+  if(dist==='uniform') return {low:0, high:0};
+  return k===3 ? {low:1, high:1} : {low:0, high:0};
+}
+function cpWorkedText(tol, k){
+  const sigma = tol/k;
+  const cp = tol/(3*sigma);
+  return {
+    sigma, cp,
+    text: `σ = ${tol}/${k} = ${sigma.toFixed(3)}<br>Cp = ${tol}/(3×${sigma.toFixed(3)}) = ${cp.toFixed(2)}`
+  };
+}
+
+/* ---------- binning rule: assign a value into one of a set of Dim points ----------
+   Note on the EPS/coin-flip branch: when Part 1 and Part 2 share the same tolerance
+   (T1 = T2, the single most common input — and the documented worst case for stack
+   height) the assembly bin width is an exact multiple of each part's bin width, so a
+   real slice of (part1-tick, part2-tick) sums land EXACTLY on an assembly bin edge in
+   true arithmetic. Resolving those exact ties with a fixed "lower bin wins" rule is
+   NOT neutral — it silently siphons a chunk of the center bin's mass into its lower
+   neighbor every time, undercounting the peak bin by ~15% at T1=T2 specifically
+   (verified: this is what produced the too-low 243.0 assembly-peak figure originally
+   documented — corrected to ≈221.6, see project doc). A fair coin flip on genuine
+   ties removes that bias and matches the smooth, continuous-limit value on both
+   sides of the T1=T2 coincidence. */
+function binIndexFor(value, dims){
+  const step = dims[1]-dims[0];
+  const EPS = Math.abs(step) * 1e-9;
+  for(let i=0;i<dims.length;i++){
+    const lo = (i===0) ? -Infinity : dims[i]-step/2;
+    const hi = (i===dims.length-1) ? Infinity : dims[i]+step/2;
+    if(isFinite(hi) && Math.abs(value-hi) < EPS){
+      return Math.random() < 0.5 ? i : i+1; // exact tie: fair split between the two adjacent bins
+    }
+    if(value > lo && value <= hi) return i;
+  }
+  return dims.length-1;
+}
+
+/* ---------- state ---------- */
+const state = {
+  procK: 3,
+  part1: {dim:10, tol:2, dist:'normal'},
+  part2: {dim:16, tol:1, dist:'normal'},
+  computed1: null, computed2: null,
+  remaining1: null, remaining2: null,
+  assyDims: null, assyCounts: null,
+  phase: 'ready', // 'ready' | 'assembling' | 'assembled'
+};
+
+/* ---------- rendering ---------- */
+function renderHistogram(containerId, dims, counts, colorClass, cap){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  for(let b=0;b<N_BINS;b++){
+    const col = document.createElement('div');
+    col.className='bin-col';
+    col.dataset.bin = b;
+    const shown = Math.min(counts[b], cap);
+    for(let i=0;i<shown;i++){
+      const t = document.createElement('div');
+      const isCap = counts[b] > cap && i === cap-1;
+      t.className = 'tick ' + colorClass + (isCap ? ' cap' : '');
+      t.style.bottom = (i*PITCH) + 'px';
+      col.appendChild(t);
+    }
+    el.appendChild(col);
+  }
+}
+function updateBinDisplay(containerId, colorClass, binIndex, newCount, cap){
+  const el = document.getElementById(containerId);
+  const col = el.querySelector('.bin-col[data-bin="'+binIndex+'"]');
+  col.innerHTML = '';
+  const shown = Math.min(newCount, cap);
+  for(let i=0;i<shown;i++){
+    const t = document.createElement('div');
+    const isCap = newCount > cap && i === cap-1;
+    t.className = 'tick ' + colorClass + (isCap ? ' cap' : '');
+    t.style.bottom = (i*PITCH) + 'px';
+    col.appendChild(t);
+  }
+}
+function renderDimQty(containerId, dims, counts){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  dims.forEach((d,i)=>{
+    const c = document.createElement('div');
+    c.className='col';
+    c.innerHTML = d.toFixed(2) + '<span class="q">' + counts[i] + '</span>';
+    el.appendChild(c);
+  });
+}
+
+function renderPart(n){
+  const p = state['part'+n];
+  const sub = document.getElementById('p'+n+'Sub');
+  const statsEl = document.getElementById('p'+n+'Stats');
+
+  let dims, counts;
+  if(p.dist==='normal'){
+    const r = computeNormalBins(p.tol, state.procK);
+    dims=r.dims; counts=r.counts;
+    sub.textContent = `1008 manufactured parts with a manufacturing process of ±${state.procK}σ.`;
+  } else {
+    const r = computeUniformBins(p.tol);
+    dims=r.dims; counts=r.counts;
+    sub.textContent = `1008 manufactured parts (uniform distribution).`;
+  }
+  state['computed'+n] = {dims, counts, dimVals: dims.map(d=>d+p.dim)};
+  state['remaining'+n] = counts.slice();
+
+  const colorClass = n==='1' ? 'blue' : 'orange';
+  renderHistogram('p'+n+'Hist', dims, counts, colorClass, PART_CAP);
+  renderDimQty('p'+n+'DimQty', state['computed'+n].dimVals, counts);
+
+  statsEl.innerHTML = '';
+  if(p.dist==='uniform'){
+    const note = document.createElement('div');
+    note.className='mini-stat'; note.style.flexBasis='100%';
+    note.innerHTML = '<div class="v">Uniform distribution — bounded by tolerance, no escapees possible.</div>';
+    statsEl.appendChild(note);
+  } else {
+    const cp = cpWorkedText(p.tol, state.procK);
+    const esc = escapeeCounts(p.dist, state.procK);
+    const cpBlock = document.createElement('div');
+    cpBlock.className='mini-stat';
+    cpBlock.innerHTML = '<div class="k">Process capability</div><div class="v">'+cp.text+'</div>';
+    const escBlock = document.createElement('div');
+    escBlock.className='mini-stat';
+    const lowV = (p.dim-p.tol).toFixed(2), highV=(p.dim+p.tol).toFixed(2);
+    const total = esc.low+esc.high;
+    escBlock.innerHTML = '<div class="k">Escapees (±'+state.procK+'σ)</div><div class="v">'+
+      (total===0 ? 'None outside tolerance' : total+' parts outside tolerance<br>(1 below '+lowV+', 1 above '+highV+')')+'</div>';
+    statsEl.appendChild(cpBlock);
+    statsEl.appendChild(escBlock);
+  }
+}
+
+function updateSharedCpHint(){
+  const cp = (state.procK/3).toFixed(2);
+  document.getElementById('cpSharedHint').textContent = 'Cp = ' + cp;
+}
+
+function updateComparisonTiles(){
+  const T1=state.part1.tol, T2=state.part2.tol;
+  const nominal = state.part1.dim + state.part2.dim;
+  document.getElementById('worstVal').textContent = nominal.toFixed(1)+' ± '+(T1+T2).toFixed(2);
+
+  const rssTile = document.getElementById('rssTile');
+  const bothNormal = state.part1.dist==='normal' && state.part2.dist==='normal';
+  if(bothNormal){
+    const rss = Math.sqrt(T1*T1+T2*T2);
+    document.getElementById('rssVal').textContent = nominal.toFixed(1)+' ± '+rss.toFixed(2);
+    document.getElementById('rssVal').classList.remove('na');
+    document.getElementById('rssWorkings').innerHTML =
+      `RSS = √(T1² + T2²)<br>= √(${T1.toFixed(2)}² + ${T2.toFixed(2)}²)<br>= √${(T1*T1+T2*T2).toFixed(2)} ≈ ${rss.toFixed(2)}`;
+  } else {
+    document.getElementById('rssVal').innerHTML = 'Not applicable';
+    document.getElementById('rssVal').classList.add('na');
+    document.getElementById('rssWorkings').innerHTML = '(requires both parts Normal)';
+  }
+}
+
+function computeAssemblyBinRange(){
+  const T1=state.part1.tol, T2=state.part2.tol;
+  const nominal = state.part1.dim + state.part2.dim;
+  const T = T1+T2;
+  const step = 2*T/(N_BINS-1);
+  const dims = Array.from({length:N_BINS}, (_,i)=> nominal - T + i*step);
+  return dims;
+}
+
+function renderAssemblyEmpty(){
+  state.assyDims = computeAssemblyBinRange();
+  state.assyCounts = Array(N_BINS).fill(0);
+  renderHistogram('assyHist', state.assyDims, state.assyCounts, 'assy', ASSY_CAP);
+  renderDimQty('assyDimQty', state.assyDims, state.assyCounts);
+  document.getElementById('actualVal').textContent = '— (not run yet)';
+  document.getElementById('actualWorkings').innerHTML = '';
+}
+
+/* ---------- full recompute (on any input/selection change) ---------- */
+// The shared ±3σ/±4σ selector only has a real effect when at least one part
+// is Normal (a Normal part's σ is literally tolerance/k). When both parts are
+// Linear (Uniform), neither one's σ depends on k at all, so the control is
+// dimmed and disabled rather than left clickable with no effect — matching
+// the same "hide what doesn't apply" convention already used for the
+// RSS-Predicted tile and the per-part Cp/escapee stats.
+function updateProcessControlState(){
+  const bothLinear = state.part1.dist==='uniform' && state.part2.dist==='uniform';
+  const proc3 = document.getElementById('proc3'), proc4 = document.getElementById('proc4');
+  proc3.disabled = bothLinear;
+  proc4.disabled = bothLinear;
+  proc3.closest('.radio-row').classList.toggle('disabled', bothLinear);
+  document.getElementById('cpSharedHint').classList.toggle('disabled', bothLinear);
+  document.getElementById('procNote').textContent = bothLinear
+    ? 'has no effect — both parts are Linear (Uniform)'
+    : 'shared — applies to Part 1 and Part 2 at once';
+}
+
+function recomputeAll(){
+  renderPart('1');
+  renderPart('2');
+  updateComparisonTiles();
+  updateProcessControlState();
+  renderAssemblyEmpty();
+  state.phase = 'ready';
+}
+
+/* ---------- input wiring ---------- */
+function readNumber(id, fallback){
+  const el = document.getElementById(id);
+  const v = parseFloat(el.value);
+  const valid = isFinite(v) && !(id.toLowerCase().includes('tol') && v<=0);
+  el.classList.toggle('invalid', !valid);
+  return valid ? v : fallback;
+}
+function bindInputs(){
+  document.getElementById('proc3').addEventListener('change', ()=>{ state.procK=3; updateSharedCpHint(); recomputeAll(); });
+  document.getElementById('proc4').addEventListener('change', ()=>{ state.procK=4; updateSharedCpHint(); recomputeAll(); });
+
+  ['1','2'].forEach(n=>{
+    document.getElementById('p'+n+'Normal').addEventListener('change', ()=>{ state['part'+n].dist='normal'; recomputeAll(); });
+    document.getElementById('p'+n+'Uniform').addEventListener('change', ()=>{ state['part'+n].dist='uniform'; recomputeAll(); });
+    document.getElementById('p'+n+'Dim').addEventListener('input', ()=>{ state['part'+n].dim = readNumber('p'+n+'Dim', state['part'+n].dim); recomputeAll(); });
+    document.getElementById('p'+n+'Tol').addEventListener('input', ()=>{ state['part'+n].tol = readNumber('p'+n+'Tol', state['part'+n].tol); recomputeAll(); });
+  });
+}
+
+/* ---------- weighted random pick without replacement ---------- */
+function pickWeighted(remaining){
+  const total = remaining.reduce((a,b)=>a+b,0);
+  if(total<=0) return -1;
+  let r = Math.random()*total;
+  for(let i=0;i<remaining.length;i++){
+    if(remaining[i]<=0) continue;
+    if(r < remaining[i]) return i;
+    r -= remaining[i];
+  }
+  return remaining.findIndex(x=>x>0);
+}
+
+function precomputePairing(){
+  const rem1 = state.computed1.counts.slice();
+  const rem2 = state.computed2.counts.slice();
+  const dims1 = state.computed1.dims, dims2 = state.computed2.dims; // relative offsets, e.g. -tol..+tol
+  const nominal = state.part1.dim + state.part2.dim;
+  const assyDims = computeAssemblyBinRange(); // absolute bin centers
+  const pairs = [];
+  for(let k=0;k<TOTAL;k++){
+    const i1 = pickWeighted(rem1); rem1[i1]--;
+    const i2 = pickWeighted(rem2); rem2[i2]--;
+    const sum = nominal + dims1[i1] + dims2[i2]; // convert relative offsets to an absolute value before binning
+    const ab = binIndexFor(sum, assyDims);
+    pairs.push({i1, i2, ab});
+  }
+  return {pairs, assyDims};
+}
+
+/* Quick (unanimated) full re-simulation of the assembly at a given process
+   setting k — used only to produce the comparison line in the Actual tile
+   when exactly one part is Normal. Unlike a rescale of one run's raw σ, this
+   actually regenerates whichever part is Normal at that k (its σ = tol/k
+   genuinely changes) while the Linear part's distribution is unaffected by k
+   either way, then draws a fresh 1008-trial pairing and measures the real
+   mean/σ of the summed values directly (no binning quantization). */
+function simulateAssemblyAtK(k){
+  const c1 = state.part1.dist==='normal' ? computeNormalBins(state.part1.tol, k) : computeUniformBins(state.part1.tol);
+  const c2 = state.part2.dist==='normal' ? computeNormalBins(state.part2.tol, k) : computeUniformBins(state.part2.tol);
+  const dims1 = c1.dims, dims2 = c2.dims;
+  const rem1 = c1.counts.slice(), rem2 = c2.counts.slice();
+  const nominal = state.part1.dim + state.part2.dim;
+  let sum=0, sumsq=0;
+  for(let i=0;i<TOTAL;i++){
+    const i1 = pickWeighted(rem1); rem1[i1]--;
+    const i2 = pickWeighted(rem2); rem2[i2]--;
+    const val = nominal + dims1[i1] + dims2[i2];
+    sum += val; sumsq += val*val;
+  }
+  const mean = sum/TOTAL;
+  const variance = sumsq/TOTAL - mean*mean;
+  return {mean, sigma: Math.sqrt(Math.max(variance,0))};
+}
+
+/* ---------- flight animation helpers (Pass 2) ---------- */
+const TICK_W = 11;   // matches CSS .tick.blue/.tick.orange width — half a bin width
+const TICK_H = PITCH; // matches the stacking pitch used by renderHistogram/updateBinDisplay
+const LIFT = 60;     // px, extra arc bulge on the rise
+
+function lerp(a,b,t){ return a + (b-a)*t; }
+function easeInOutQuad(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+
+function binColRect(containerId, binIndex){
+  const el = document.getElementById(containerId);
+  const col = el.querySelector('.bin-col[data-bin="'+binIndex+'"]');
+  return col.getBoundingClientRect();
+}
+// Viewport Y of the tick sitting at `indexFromBottom` (0-based) in a bin whose
+// column rect is `rect` — matches the `bottom = i*PITCH` stacking rule used to lay
+// out the real, persistent ticks.
+function tickY(rect, indexFromBottom){
+  return rect.bottom - indexFromBottom*TICK_H - TICK_H/2;
+}
+
+function spawnFlyer(colorClass){
+  const el = document.createElement('div');
+  el.className = 'flyer ' + colorClass;
+  el.style.width = TICK_W + 'px';
+  document.body.appendChild(el);
+  return el;
+}
+function placeFlyer(el, x, y){
+  el.style.transform = 'translate(' + (x - TICK_W/2) + 'px,' + (y - TICK_H/2) + 'px)';
+}
+
+/* One tracked flight: two half-width ticks (blue from Part 1, orange from Part 2)
+   rise off their source bins, meet and travel on together, then fall into the
+   destination assembly bin as its new topmost tick. Rise/fall split at u=0.5,
+   with an easing-in-out rise and a gravity-like accelerating fall, matching the
+   locked design (parabolic: up, then down — never a straight diagonal slide). */
+function flyPair({p1Rect, p1IndexFromBottom, p2Rect, p2IndexFromBottom, assyRect, assyIndexFromBottom}, duration, onDone){
+  const startA = {x: p1Rect.left + p1Rect.width/2, y: tickY(p1Rect, p1IndexFromBottom)};
+  const startB = {x: p2Rect.left + p2Rect.width/2, y: tickY(p2Rect, p2IndexFromBottom)};
+  const meetX = (startA.x + startB.x) / 2;
+  const meetY = Math.min(startA.y, startB.y) - LIFT;
+  const destCX = assyRect.left + assyRect.width/2;
+  const destY = tickY(assyRect, assyIndexFromBottom);
+
+  const flyA = spawnFlyer('blue');
+  const flyB = spawnFlyer('orange');
+  const t0 = performance.now();
+
+  function step(now){
+    const u = Math.min(1, (now - t0) / duration);
+    let ax, ay, bx, by;
+    if(u < 0.5){
+      const s = easeInOutQuad(u/0.5);
+      ax = lerp(startA.x, meetX - TICK_W/2, s);
+      bx = lerp(startB.x, meetX + TICK_W/2, s);
+      const bulge = LIFT*4*s*(1-s);
+      ay = lerp(startA.y, meetY, s) - bulge;
+      by = lerp(startB.y, meetY, s) - bulge;
+    } else {
+      const v = (u-0.5)/0.5;
+      const ease = v*v; // accelerating fall
+      const cx = lerp(meetX, destCX, ease);
+      ax = cx - TICK_W/2; bx = cx + TICK_W/2;
+      ay = lerp(meetY, destY, ease); by = ay;
+    }
+    placeFlyer(flyA, ax, ay);
+    placeFlyer(flyB, bx, by);
+    if(u < 1){
+      requestAnimationFrame(step);
+    } else {
+      flyA.remove(); flyB.remove();
+      onDone();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- assemble animation (Pass 2: tracked flights for the first 10 pairs, fast instant swarm for the rest) ---------- */
+function runAssemble(){
+  if(state.phase==='assembling') return;
+  state.phase = 'assembling';
+  document.getElementById('assembleBtn').disabled = true;
+
+  const {pairs, assyDims} = precomputePairing();
+  state.assyDims = assyDims;
+  const rem1 = state.computed1.counts.slice();
+  const rem2 = state.computed2.counts.slice();
+  const assyCounts = Array(N_BINS).fill(0);
+  state.remaining1 = rem1; state.remaining2 = rem2; state.assyCounts = assyCounts;
+
+  const PHASE_A_END = 2000, PHASE_B_END = 4000, PHASE_C_END = 6000;
+  let pendingFlights = 0;
+
+  // Phase C (pairs 11–1008, idx 10..1007): ~2ms/pair — far too fast to track
+  // individually, so these land as an instant, fast-forward swarm exactly as
+  // Pass 1 did (matches the locked pacing note: "necessarily a fast concurrent
+  // swarm, not individually trackable").
+  function applyPairInstant(idx){
+    const {i1,i2,ab} = pairs[idx];
+    rem1[i1]--; rem2[i2]--; assyCounts[ab]++;
+    updateBinDisplay('p1Hist','blue', i1, rem1[i1], PART_CAP);
+    updateBinDisplay('p2Hist','orange', i2, rem2[i2], PART_CAP);
+    updateBinDisplay('assyHist','assy', ab, assyCounts[ab], ASSY_CAP);
+  }
+
+  // Phase A (pair 1) + Phase B (pairs 2–10): idx 0..9 — each gets a real,
+  // trackable flight. The source bins deplete the instant a tick departs (the
+  // cap mark is live and reacts right away); the assembly bin only gains its
+  // new tick when the flight actually lands.
+  function applyPairFlight(idx, duration){
+    const {i1,i2,ab} = pairs[idx];
+    const p1IndexFromBottom = rem1[i1]-1, p2IndexFromBottom = rem2[i2]-1;
+    const p1Rect = binColRect('p1Hist', i1), p2Rect = binColRect('p2Hist', i2);
+    rem1[i1]--; rem2[i2]--;
+    updateBinDisplay('p1Hist','blue', i1, rem1[i1], PART_CAP);
+    updateBinDisplay('p2Hist','orange', i2, rem2[i2], PART_CAP);
+
+    const assyIndexFromBottom = assyCounts[ab]; // slot reserved now, revealed on landing
+    assyCounts[ab]++;
+    const assyRect = binColRect('assyHist', ab);
+
+    pendingFlights++;
+    flyPair({p1Rect, p1IndexFromBottom, p2Rect, p2IndexFromBottom, assyRect, assyIndexFromBottom}, duration, () => {
+      updateBinDisplay('assyHist','assy', ab, assyCounts[ab], ASSY_CAP);
+      pendingFlights--;
+      maybeFinish();
+    });
+  }
+
+  let finished = false;
+  function maybeFinish(){
+    if(finished) return;
+    if(nextIdx >= TOTAL && pendingFlights === 0){
+      finished = true;
+      finishAssemble(assyCounts);
+    }
+  }
+
+  // Launch the 10 tracked flights on their own timers: pair 1 alone gets the
+  // full 2.0s as one slow, deliberate arc; pairs 2–10 launch every ~222ms
+  // across the next 2.0s window (each a shorter, but still fully visible, arc).
+  applyPairFlight(0, PHASE_A_END);
+  for(let k=1; k<=9; k++){
+    const launchAt = PHASE_A_END + (k-1) * ((PHASE_B_END-PHASE_A_END)/9);
+    setTimeout(() => applyPairFlight(k, 900), launchAt);
+  }
+
+  // idx 10..1007 fast-forward via the same rAF catch-up loop Pass 1 used.
+  const startTime = performance.now();
+  let nextIdx = 10;
+
+  function schedule(){
+    const now = performance.now();
+    const t = now - startTime;
+    let targetIdx;
+    if(t < PHASE_B_END){
+      targetIdx = 9; // held — idx 0..9 are handled by the flight timers above
+    } else if(t < PHASE_C_END){
+      const frac = (t-PHASE_B_END)/(PHASE_C_END-PHASE_B_END);
+      targetIdx = 10 + Math.floor(frac*998);
+    } else {
+      targetIdx = TOTAL;
+    }
+    while(nextIdx <= targetIdx && nextIdx < TOTAL){
+      applyPairInstant(nextIdx);
+      nextIdx++;
+    }
+    if(nextIdx < TOTAL){
+      requestAnimationFrame(schedule);
+    } else {
+      maybeFinish();
+    }
+  }
+  requestAnimationFrame(schedule);
+}
+
+function finishAssemble(assyCounts){
+  renderDimQty('assyDimQty', state.assyDims, assyCounts);
+  // Actual tile reports the empirical mean and spread measured from this run's
+  // 1008 trials directly — not the theoretical nominal — since the point of
+  // this tile is what really happened, not a repeat of the input values.
+  let sum=0, sumsq=0;
+  state.assyDims.forEach((d,i)=>{ sum += d*assyCounts[i]; sumsq += d*d*assyCounts[i]; });
+  const mean = sum/TOTAL;
+  const variance = sumsq/TOTAL - mean*mean;
+  const sigma = Math.sqrt(Math.max(variance,0));
+  const actualValEl = document.getElementById('actualVal');
+  const actualWorkEl = document.getElementById('actualWorkings');
+  // The ±kσ scale only means what it's supposed to mean — matching Worst-case
+  // and RSS-Predicted — when both parts are Normal, since "±kσ" is literally
+  // how a Normal process's tolerance is defined (σ = tolerance/k). A Uniform
+  // part's σ is tolerance/√3, a different and generally larger ratio, so
+  // multiplying its contribution's sigma by k doesn't correspond to any real
+  // bound — it can land above the true Worst-case, which is meaningless (no
+  // assembled part can ever actually exceed Worst-case). Gated the same way
+  // RSS-Predicted already is, so this can't happen.
+  const bothNormal = state.part1.dist==='normal' && state.part2.dist==='normal';
+  const bothLinear = state.part1.dist==='uniform' && state.part2.dist==='uniform';
+  if(bothNormal){
+    const k = state.procK;
+    const kSigma = sigma * k;
+    actualValEl.textContent = mean.toFixed(1)+' ± '+kSigma.toFixed(2);
+    actualWorkEl.innerHTML = `σ (this run) = ${sigma.toFixed(3)}<br>× ${k} (±${k}σ process) = ${kSigma.toFixed(2)}`;
+  } else if(bothLinear){
+    // Neither a raw σ nor a fixed ×3σ earns its place here (both tried and
+    // rejected — see project doc history): neither part's σ depends on k
+    // (Uniform σ is always tol/√3), and 3σ for a Uniform variable always
+    // exceeds its own tolerance, which reads as confusing regardless of how
+    // clearly it's captioned. Replace with something that's actually
+    // meaningful for any distribution: the real minimum and maximum assembly
+    // value that occurred among this run's 1008 simulated parts. This has no
+    // σ-scale assumption at all, and is guaranteed to sit inside Worst-case
+    // since it's a genuine physical extent that happened, not a derived
+    // statistic.
+    let loBin = -1, hiBin = -1;
+    for(let i=0;i<assyCounts.length;i++){
+      if(assyCounts[i] > 0){ if(loBin===-1) loBin=i; hiBin=i; }
+    }
+    const loVal = state.assyDims[loBin], hiVal = state.assyDims[hiBin];
+    actualValEl.textContent = loVal.toFixed(2)+' – '+hiVal.toFixed(2)+' (observed range)';
+    actualWorkEl.innerHTML = `Both parts are Linear, so neither a raw σ nor a fixed ×3σ<br>is meaningful here. Shown instead: the real minimum and<br>maximum assembly values that actually occurred among the<br>1008 simulated parts this run — always within Worst-case.`;
+  } else {
+    // Exactly one part is Normal. That part's σ = tolerance/k, so the process
+    // setting genuinely changes ITS spread (the Linear part's σ = tol/√3
+    // either way) — worth showing both settings side by side. One line is
+    // this run's own real numbers (whichever k is currently active); the
+    // other is a fresh, honestly re-simulated run at the other k — not the
+    // same run's σ rescaled by a ratio, which would have no principled basis
+    // here (only one of the two parts' σ actually moves with k).
+    const currentK = state.procK;
+    const otherK = currentK===3 ? 4 : 3;
+    const otherRun = simulateAssemblyAtK(otherK);
+    const lines = [{k:currentK, mean, sigma}, {k:otherK, mean:otherRun.mean, sigma:otherRun.sigma}]
+      .sort((a,b)=>a.k-b.k);
+    actualValEl.innerHTML = lines.map(L => L.mean.toFixed(1)+' ± '+L.sigma.toFixed(2)+' (±'+L.k+'σ)').join('<br>');
+    actualWorkEl.innerHTML = `Only one part is Normal — its σ = tolerance/k, so the process<br>setting changes its real spread (the Linear part's σ is fixed<br>at tolerance/√3 regardless). Both lines are real simulated runs,<br>one at each process setting, not one run's σ rescaled.`;
+  }
+  document.getElementById('assembleBtn').disabled = false;
+  state.phase = 'assembled';
+}
+
+/* ---------- reset-on-next-interaction (mouse, touch, keyboard) ---------- */
+function maybeResetView(e){
+  if(state.phase !== 'assembled') return;
+  // A keydown carrying Ctrl/Cmd/Alt is a browser or OS shortcut (zoom in/out,
+  // zoom reset, find, print, devtools, ...) passing through the page — not the
+  // visitor interacting with the tool itself, so it must not reset the view.
+  // Tab (focusin, handled separately), Enter/Space on a focused control, and
+  // plain arrow-key navigation carry none of these modifiers, so the original
+  // keyboard-accessibility behavior is unaffected.
+  if(e && e.type === 'keydown' && (e.ctrlKey || e.metaKey || e.altKey)) return;
+  recomputeAll();
+}
+['pointerdown','focusin','keydown'].forEach(evt=>{
+  document.addEventListener(evt, maybeResetView, true); // capture phase: runs before the target's own handler
+});
+
+document.getElementById('assembleBtn').addEventListener('click', runAssemble);
+
+/* ---------- init ---------- */
+bindInputs();
+updateSharedCpHint();
+recomputeAll();
+
+})();
+</script>
+</body>
+</html>
