@@ -57,7 +57,7 @@
     .divider .rule{ flex: 1; height: 1px; background: var(--line); }
     .divider .label{ font-size: 11px; letter-spacing: .1em; color: var(--muted); flex-shrink: 0; }
 
-    .grid{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+    .grid{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 
     .card{
       position: relative;
@@ -174,6 +174,27 @@
         <div class="tag mono">03 &mdash; TOLERANCING</div>
         <h2>Monte Carlo Tolerance Calculation</h2>
         <p>Interactive tolerance-stack simulation for a Part 1 + Part 2 assembly &mdash; Normal or Linear distributions, a shared manufacturing process capability, and a randomized pairing simulation compared against Worst-case and RSS-predicted spread.</p>
+        <span class="open mono">Open tool
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6H10M10 6L6.5 2.5M10 6L6.5 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+
+      <a class="card" href="rigid-body-solver/">
+        <svg class="corner tl" viewBox="0 0 9 9"><path d="M0 9 L0 0 L9 0" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+        <svg class="corner br" viewBox="0 0 9 9"><path d="M0 9 L0 0 L9 0" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+        <div class="icon">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <rect x="8" y="10" width="18" height="10" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="17" y1="4" x2="17" y2="10" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M17 4 L14.2 8.4 M17 4 L19.8 8.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M10 20 L6.5 26.5 L13.5 26.5 Z" stroke="currentColor" stroke-width="1.3" opacity="0.65"/>
+            <path d="M24 20 L20.5 26.5 L27.5 26.5 Z" stroke="currentColor" stroke-width="1.3" opacity="0.65"/>
+            <line x1="4" y1="27.5" x2="30" y2="27.5" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="tag mono">04 &mdash; STATICS</div>
+        <h2>Rigid Body Reaction Force Solver</h2>
+        <p>Reaction forces for a rigid body under arbitrary applied forces, moments, and equivalent static inertia loads &mdash; xyz, single-, double-, or triple-direction reactions, with a built-in equilibrium crosscheck.</p>
         <span class="open mono">Open tool
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6H10M10 6L6.5 2.5M10 6L6.5 9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
