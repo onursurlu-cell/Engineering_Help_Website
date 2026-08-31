@@ -39,10 +39,13 @@ svg{width:100%;height:auto;display:block}
 .theorygrid img{width:100%;border:1px solid #ddd;border-radius:7px;background:#fff}
 .small{font-size:12px;color:var(--muted)}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.visuals{grid-template-columns:1fr}.results{grid-template-columns:repeat(2,1fr)}}
+.home-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:14px}
+.home-link:hover{color:var(--text);border-color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="wrapper">
+  <a href="../" class="home-link">&larr; Main page</a>
   <h1>Bolt Pretension / External Load</h1>
   <div class="sub">Interactive training visualization of a preloaded bolted joint under external tensile load</div>
   <div class="note"><b>Training / visualization tool.</b> The calculation engine is executed on a private server. This public page contains the interface and graphics, but not the core calculation formulas.</div>

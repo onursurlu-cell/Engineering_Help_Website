@@ -92,11 +92,15 @@
   .na{font-size:13px !important; font-weight:400 !important; color:var(--muted) !important;}
 
   @media (max-width: 720px){ .parts-row{flex-direction:column;} }
+
+  .home-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin-bottom:14px}
+  .home-link:hover{color:var(--ink);border-color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="wrapper">
 
+  <a href="../" class="home-link">&larr; Main page</a>
   <h1>Monte Carlo Tolerance Calculation</h1>
   <div class="subtitle">Interactive tolerance-stack simulation for Part 1 + Part 2 assemblies</div>
 

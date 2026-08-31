@@ -57,10 +57,13 @@ svg{width:100%;height:auto;background:#fff}
 svg text{font-size:11px;fill:#111827}
 @media(max-width:1100px){.layout{grid-template-columns:1fr}.visual-grid,.lower{grid-template-columns:1fr}.tensor-wrap{flex-wrap:wrap}.results{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:650px){.results{grid-template-columns:repeat(2,1fr)}}
+.home-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;margin-bottom:14px}
+.home-link:hover{color:var(--text);border-color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="wrapper">
+  <a href="../" class="home-link">&larr; Main page</a>
   <h1>Interactive 2D Plane Stress / Mohr Circle</h1>
   <div class="sub">Self-study, training and engineering visualization</div>
   <div class="note">
