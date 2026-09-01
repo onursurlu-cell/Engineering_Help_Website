@@ -30,12 +30,26 @@
     .page{
       position: relative;
       width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
       background-image:
         linear-gradient(var(--grid) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid) 1px, transparent 1px);
       background-size: 32px 32px;
       background-position: -1px -1px;
     }
+
+    /* --- Reserved ad space (placeholders; no ad code wired in yet) --- */
+    .ad-layout{ display: flex; justify-content: center; align-items: flex-start; gap: 28px; width: 100%; }
+    .ad-rail{ flex: 0 0 160px; width: 160px; position: sticky; top: 24px; align-self: flex-start; }
+    .ad-slot{
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      border: 1px dashed var(--line); border-radius: 4px; background: var(--grid);
+      color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    .ad-rail .ad-slot{ width: 160px; height: 600px; }
+    @media (max-width: 1550px){ .ad-rail{ display: none; } }
     .wrap{ max-width: 1040px; margin: 0 auto; padding: 88px 32px 100px; }
 
     .eyebrow{
@@ -99,6 +113,9 @@
   </style>
 </head>
 <body>
+
+<div class="ad-layout">
+  <aside class="ad-rail" aria-hidden="true"><div class="ad-slot"><span>Advertisement</span><span>160 &times; 600</span></div></aside>
 
 <div class="page">
   <div class="wrap">
@@ -203,6 +220,9 @@
     </div>
 
   </div>
+</div>
+
+  <aside class="ad-rail" aria-hidden="true"><div class="ad-slot"><span>Advertisement</span><span>160 &times; 600</span></div></aside>
 </div>
 
 </body>

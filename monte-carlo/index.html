@@ -12,7 +12,18 @@
   }
   *{box-sizing:border-box}
   body{margin:0; font-family:"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--ink);}
-  .wrapper{max-width:1200px; margin:0 auto; padding:32px 24px 60px;}
+  .wrapper{max-width:1200px; margin:0 auto; padding:32px 24px 60px; flex:1 1 auto; min-width:0;}
+
+  /* --- Reserved ad space (placeholders; no ad code wired in yet) --- */
+  .ad-layout{display:flex; justify-content:center; align-items:flex-start; gap:28px; width:100%;}
+  .ad-rail{flex:0 0 160px; width:160px; position:sticky; top:24px; align-self:flex-start;}
+  .ad-slot{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    border:1px dashed var(--line); border-radius:8px; background:#f3f4f6;
+    color:var(--muted); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  }
+  .ad-rail .ad-slot{width:160px; height:600px;}
+  @media (max-width: 1700px){ .ad-rail{display:none;} }
   h1{margin:0 0 4px; font-size:30px;}
   .subtitle{color:var(--muted); font-size:15px; margin-bottom:28px;}
   .card{background:var(--card); border:1px solid var(--line); border-radius:12px;}
@@ -98,6 +109,9 @@
 </style>
 </head>
 <body>
+<div class="ad-layout">
+  <aside class="ad-rail" aria-hidden="true"><div class="ad-slot"><span>Advertisement</span><span>160 &times; 600</span></div></aside>
+
 <div class="wrapper">
 
   <a href="../" class="home-link">&larr; Main page</a>
@@ -183,6 +197,9 @@
     </div>
   </div>
 
+</div>
+
+  <aside class="ad-rail" aria-hidden="true"><div class="ad-slot"><span>Advertisement</span><span>160 &times; 600</span></div></aside>
 </div>
 
 <script>
