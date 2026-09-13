@@ -16,6 +16,13 @@ body{margin:0;font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);color
 .wrapper{max-width:1500px;margin:0 auto;padding:18px}
 /* --- Reserved ad space (placeholder; no ad code wired in yet) --- */
 .ad-slot-bottom{margin:28px auto 0;max-width:728px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--border);border-radius:10px;background:#eef1f4;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+footer.sitefoot{margin:28px auto 0;max-width:728px;padding-top:16px;border-top:1px solid var(--border);font-size:12.5px;color:var(--muted);text-align:center}
+footer.sitefoot a{color:var(--muted);text-decoration:none}
+footer.sitefoot a:hover{color:var(--accent)}
+.formula{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;font-size:13.5px;line-height:1.8;background:#f3f4f6;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0}
+.panel p{line-height:1.6;margin:0 0 10px}
+.panel ul{margin:0 0 10px;padding-left:20px;line-height:1.6}
+.panel li{margin-bottom:6px}
 h1{margin:0 0 5px;font-size:28px}.sub{color:var(--muted);margin-bottom:14px}
 .note{background:#eef4ff;border:1px solid #bfd2ff;padding:11px 14px;border-radius:10px;margin-bottom:14px;font-size:13.5px}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px}
@@ -101,6 +108,22 @@ table.loads .idx{color:var(--muted);font-size:12px}
   <div class="note"><b>Calculation tool.</b> Reaction-geometry validation and the reaction-force solve are executed on a private server. This public page contains the interface only, not the core calculation formulas.</div>
 
   <div class="panel">
+    <div class="section-title">Background &amp; theory</div>
+    <p>A rigid body in static equilibrium must satisfy six scalar conditions &mdash; force balance along three global axes and moment balance about three global axes:</p>
+    <div class="formula">&Sigma;F<sub>x</sub> = &Sigma;F<sub>y</sub> = &Sigma;F<sub>z</sub> = 0 &nbsp;&nbsp; &Sigma;M<sub>x</sub> = &Sigma;M<sub>y</sub> = &Sigma;M<sub>z</sub> = 0</div>
+    <p>With up to 15 independent applied loads and 15 reaction locations, each potentially restraining one, two, or three directions, solving these six equations directly for an arbitrary mix of reaction types gets awkward fast. This tool instead uses a <b>compatibility (stiffness) formulation</b>, the same conceptual approach behind an RBE2 rigid element in finite-element analysis: every active reaction direction is modeled as an identical, very stiff hidden spring. Requiring the rigid body to move as one rigid unit (no relative motion between spring endpoints) gives a compatibility matrix <b>B</b>, where each row is [d&#770;; r&times;d&#770;] &mdash; the reaction direction and its moment arm about the body's reference point.</p>
+    <p>Rigid-body compatibility then reduces the problem to a small, well-conditioned linear solve:</p>
+    <div class="formula">(B<sup>T</sup>B)&middot;q&#771; = F<sub>total</sub> &nbsp;&rarr;&nbsp; solved directly (never by forming an explicit matrix inverse)<br>reaction force vector: f = &minus;B&middot;q&#771;</div>
+    <p>The minus sign is not a typo &mdash; it falls straight out of Hooke's law for the hidden springs (f<sub>i</sub> = &minus;k&middot;&delta;<sub>i</sub>, a restoring force) and was verified by hand against a textbook 3-2-1 fixture before being trusted in the solver.</p>
+    <p>Two checks run automatically before any result is trusted:</p>
+    <ul>
+      <li><b>Restraint sufficiency / singularity</b> &mdash; the eigenvalues of B<sup>T</sup>B reveal whether the specified reactions genuinely restrain all six rigid-body degrees of freedom, or whether the configuration is under-restrained, redundant in a problematic direction, or numerically near-singular.</li>
+      <li><b>Equilibrium crosscheck</b> &mdash; after solving, the sum of applied loads and the sum of computed reactions are independently compared, force-by-force and moment-by-moment, and reported as &Delta;F% / &Delta;M% with no pass/fail threshold applied &mdash; it's there for you to review, not to hide behind.</li>
+    </ul>
+    <p>Applied loading can include ordinary forces and moments, gravity (&minus;9.81&nbsp;m/s&sup2; at every active mass location), and an equivalent static inertia load F&nbsp;=&nbsp;&minus;m&middot;a from a user-defined global acceleration &mdash; useful for shock, transport, or maneuver load cases without needing a full dynamic analysis. Typical uses: sizing mounting brackets and fixtures, checking a statically-determinate or intentionally overdetermined restraint scheme, or getting a quick reaction-force sanity check before committing to a full FE model.</p>
+  </div>
+
+  <div class="panel">
     <div class="section-title">Setup</div>
     <div class="setup-grid">
       <div class="setup-block">
@@ -171,6 +194,8 @@ table.loads .idx{color:var(--muted);font-size:12px}
   </div>
 
   <div class="ad-slot-bottom" aria-hidden="true"><span>Advertisement</span><span>728 &times; 90</span></div>
+
+  <footer class="sitefoot"><a href="../about/">About</a> &middot; <a href="../privacy-policy/">Privacy Policy</a></footer>
 </div>
 
 <script>

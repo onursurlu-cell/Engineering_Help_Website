@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4965698979024228" crossorigin="anonymous"></script>
+  <title>About &mdash; Engineering Help</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Caveat:wght@500;600&display=swap">
+  <style>
+    :root{
+      --bg: oklch(99% 0.003 250);
+      --ink: oklch(22% 0.012 250);
+      --muted: oklch(46% 0.02 250);
+      --line: oklch(89% 0.006 250);
+      --grid: oklch(94.5% 0.006 250);
+      --card-bg: oklch(100% 0 0);
+      --accent: #1f4e79;
+    }
+    *{ box-sizing: border-box; }
+    html, body{ margin:0; padding:0; }
+    body{
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, Segoe UI, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a{ color: var(--accent); text-decoration: none; }
+    a:hover{ color: var(--ink); }
+    .mono{ font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace; }
+
+    .page{
+      position: relative;
+      width: 100%;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 32px 32px;
+      background-position: -1px -1px;
+    }
+    .wrap{ max-width: 720px; margin: 0 auto; padding: 72px 32px 80px; }
+
+    .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); border:1px solid var(--line); border-radius:8px; padding:6px 12px; margin-bottom: 28px; }
+    .back-link:hover{ color: var(--ink); border-color: var(--accent); }
+
+    .eyebrow{
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--accent); margin: 0 0 20px;
+    }
+    .eyebrow::before{ content: ""; width: 22px; height: 1px; background: var(--accent); display: inline-block; }
+
+    h1{ font-size: 36px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 18px; }
+    h2{ font-size: 18px; font-weight: 600; margin: 32px 0 12px; }
+    p{ font-size: 15.5px; line-height: 1.7; color: var(--ink); margin: 0 0 16px; }
+    ul{ margin: 0 0 16px; padding-left: 20px; }
+    li{ font-size: 15.5px; line-height: 1.7; margin-bottom: 8px; }
+
+    .divider{ display: flex; align-items: center; gap: 10px; margin: 28px 0; }
+    .divider .tick{ width: 1px; height: 10px; background: var(--line); flex-shrink: 0; }
+    .divider .rule{ flex: 1; height: 1px; background: var(--line); }
+
+    .contact-card{
+      background: var(--card-bg); border: 1px solid var(--line); border-radius: 10px;
+      padding: 20px 22px; margin-top: 8px;
+    }
+    .contact-card .label{ font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+    footer{ margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); text-align: center; }
+    footer a{ color: var(--muted); }
+    footer a:hover{ color: var(--accent); }
+
+    @media (max-width: 560px){
+      .wrap{ padding: 48px 20px 60px; }
+      h1{ font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <div class="wrap">
+
+    <a href="../" class="back-link mono">&larr; Main page</a>
+    <div class="eyebrow mono">About</div>
+    <h1>Onur Surlu</h1>
+
+    <p>I'm a structural design engineer &mdash; it's the field I've devoted my career to, for the past 25 years. For nearly as long, I've been writing VBA code behind Excel: not because anyone asked me to, but to work more efficiently, and often just to teach myself something better. Along the way I picked up the NAFEMS PSE 'Entry' certificate and am currently studying for the 'Standard' level.</p>
+
+    <p>About 15 years ago, I tried to build a website to share some of that Excel-based work with other engineers. I didn't get far &mdash; it was simply too hard a job for me to do alone at the time, and I gave up.</p>
+
+    <p>The idea stayed with me, though. With the recent, genuinely remarkable progress in AI, I was finally able to do what I couldn't do alone: working with Claude, I converted years of my own Excel calculation tools &mdash; and built a few new ones &mdash; into onurhelps.com. I'm no longer bounded by the time constraints that stopped me the first time around; now the limit is just my own imagination.</p>
+
+    <h2>What's on this site</h2>
+    <ul>
+      <li><b>Interactive 2D Plane Stress / Mohr's Circle</b> &mdash; stress transformation, principal stresses, Tresca/von Mises.</li>
+      <li><b>Bolt Pretension / External Load</b> &mdash; preloaded bolted joint behavior, stiffness, separation.</li>
+      <li><b>Monte Carlo Tolerance Calculation</b> &mdash; worst-case vs. RSS vs. real randomized-pairing tolerance stacking.</li>
+      <li><b>Rigid Body Reaction Force Solver</b> &mdash; reaction forces for arbitrary loads, moments, and restraints, with a built-in equilibrium crosscheck.</li>
+    </ul>
+    <p>Everything here is free to use, with no sign-up required. These tools are intended for self-study, training, and engineering visualization &mdash; they don't replace applicable design codes, project requirements, or independent engineering verification.</p>
+
+    <div class="divider"><span class="tick"></span><span class="rule"></span></div>
+
+    <h2>Get in touch</h2>
+    <div class="contact-card">
+      <div class="label mono">Contact</div>
+      <p style="margin:0">I'd genuinely welcome feedback &mdash; what's useful, what's confusing, or what tool you'd want to see next. The best way to reach me is on <a href="https://www.linkedin.com/in/s-onur-surlu-aug2026" target="_blank" rel="noopener">LinkedIn</a>.</p>
+    </div>
+
+    <footer class="mono">
+      <a href="../">onurhelps.com</a> &middot; <a href="../privacy-policy/">Privacy Policy</a>
+    </footer>
+
+  </div>
+</div>
+
+</body>
+</html>

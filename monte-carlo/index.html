@@ -25,6 +25,15 @@
   }
   .ad-rail .ad-slot{width:160px; height:600px;}
   @media (max-width: 1700px){ .ad-rail{display:none;} }
+  .formula{font-family:ui-monospace,SFMono-Regular,monospace; font-size:13.5px; line-height:1.8; background:#f3f4f6; border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:10px 0;}
+  .theory p{line-height:1.6; margin:0 0 10px;}
+  .theory ul{margin:0 0 10px; padding-left:20px; line-height:1.6;}
+  .theory li{margin-bottom:6px;}
+  .theory{padding:20px 22px; margin-bottom:22px;}
+  footer.sitefoot{margin:28px 0 0; padding-top:16px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); text-align:center;}
+  footer.sitefoot a{color:var(--muted); text-decoration:none;}
+  footer.sitefoot a:hover{color:var(--accent);}
+  .theory h2{font-size:17px; margin:0 0 10px;}
   h1{margin:0 0 4px; font-size:30px;}
   .subtitle{color:var(--muted); font-size:15px; margin-bottom:28px;}
   .card{background:var(--card); border:1px solid var(--line); border-radius:12px;}
@@ -119,6 +128,18 @@
   <h1>Monte Carlo Tolerance Calculation</h1>
   <div class="subtitle">Interactive tolerance-stack simulation for Part 1 + Part 2 assemblies</div>
 
+  <div class="card theory">
+    <h2>Background &amp; theory</h2>
+    <p>When two parts with independent manufacturing tolerances are joined into an assembly, the combined tolerance can be estimated a few different ways &mdash; and they don't agree, which is exactly the point of this tool.</p>
+    <div class="formula">
+      Worst-case: T<sub>assy</sub> = T<sub>1</sub> + T<sub>2</sub> &nbsp;(assumes both parts land at their extreme simultaneously)<br>
+      RSS (root-sum-square): T<sub>assy</sub> = &radic;(T<sub>1</sub>&sup2; + T<sub>2</sub>&sup2;) = k&middot;&radic;(&sigma;<sub>1</sub>&sup2; + &sigma;<sub>2</sub>&sup2;) &nbsp;(assumes independent, normally-distributed parts)
+    </div>
+    <p>Worst-case is guaranteed safe but almost always far too pessimistic &mdash; in practice, it's extremely unlikely that every part in an assembly lands at its extreme dimension at once. RSS is the standard correction for that: for a manufacturing process running at &plusmn;k&sigma; (&sigma; = tolerance/k), it predicts a tighter, statistically realistic assembly spread, and it's exact <i>in the limit of infinitely many parts</i>. A process running at &plusmn;3&sigma; has a process capability C<sub>p</sub> = T/(3&sigma;) = 1.00; at &plusmn;4&sigma;, C<sub>p</sub> &asymp; 1.33 &mdash; tighter control, narrower real spread, for the same stated tolerance.</p>
+    <p>What RSS can't show you is what actually happens with a <i>finite</i> batch of real parts randomly paired on an assembly line &mdash; which is exactly what the "Assemble" simulation does here: it draws real, discrete populations for Part 1 and Part 2 (1008 of each, matching the classic textbook batch size), randomly matches them one-to-one without replacement, and measures the assembly spread that actually results. The outcome is always close to the RSS prediction, but not identical to it &mdash; the gap between "Actual (this run)" and "RSS-Predicted" is the honest, expected effect of finite-sample randomness, not an error in either number.</p>
+    <p>The tool also reports <b>escapees</b> &mdash; parts that a &plusmn;3&sigma; Normal process still produces just outside its own stated tolerance band (the well-known ~0.27% tail of a true &plusmn;3&sigma; process), which a Uniform/Linear distribution can never produce since it's bounded by definition. Switching either part between Normal and Uniform, or between &plusmn;3&sigma; and &plusmn;4&sigma;, updates every number on the page live, so you can build intuition for how process capability and distribution shape actually move the needle on assembly-level risk.</p>
+  </div>
+
   <div class="card shared-process">
     <div class="label">Manufacturing process<span class="note" id="procNote">shared — applies to Part 1 and Part 2 at once</span></div>
     <div class="radio-row">
@@ -197,6 +218,8 @@
       </div>
     </div>
   </div>
+
+  <footer class="sitefoot"><a href="../about/">About</a> &middot; <a href="../privacy-policy/">Privacy Policy</a></footer>
 
 </div>
 

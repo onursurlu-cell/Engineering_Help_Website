@@ -15,9 +15,16 @@ body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:v
 .wrapper{max-width:1500px;margin:0 auto;padding:18px}
 /* --- Reserved ad space (placeholder; no ad code wired in yet) --- */
 .ad-slot-bottom{margin:28px auto 0;max-width:728px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--border);border-radius:10px;background:#eef1f4;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+footer.sitefoot{margin:28px auto 0;max-width:728px;padding-top:16px;border-top:1px solid var(--border);font-size:12.5px;color:var(--muted);text-align:center}
+footer.sitefoot a{color:var(--muted);text-decoration:none}
+footer.sitefoot a:hover{color:var(--accent)}
 h1{margin:0 0 6px;font-size:28px}
 .sub{color:var(--muted);margin-bottom:18px}
 .note{background:#eef4ff;border:1px solid #bfd2ff;padding:12px 14px;border-radius:10px;margin-bottom:16px}
+.formula{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;font-size:13.5px;line-height:1.8;background:#f3f4f6;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0}
+.panel p{line-height:1.6;margin:0 0 10px}
+.panel ul{margin:0 0 10px;padding-left:20px;line-height:1.6}
+.panel li{margin-bottom:6px}
 .layout{display:grid;grid-template-columns:240px 1fr;gap:16px}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
 .controls label{display:block;font-size:14px;margin:10px 0 4px}
@@ -74,6 +81,23 @@ svg text{font-size:11px;fill:#111827}
     This interactive tool is intended for self-study, training and visualization of two-dimensional stress transformation concepts.
     It links the stress element, Mohr circle, hydrostatic/deviatoric decomposition, and Tresca/von Mises representations.
     It does not replace applicable design codes, project requirements or independent engineering verification.
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Background &amp; theory</div>
+    <p>At a point in a loaded body, the state of plane stress is fully described by three components on a chosen pair of orthogonal axes: the two normal stresses &sigma;<sub>x</sub>, &sigma;<sub>y</sub> and the shear stress &tau;<sub>xy</sub>. Rotating the reference axes by an angle &theta; changes the numbers you read off, even though the physical stress state at that point hasn't changed &mdash; the stress transformation equations describe exactly how:</p>
+    <div class="formula">
+      &sigma;<sub>x&prime;</sub> = (&sigma;<sub>x</sub>+&sigma;<sub>y</sub>)/2 + (&sigma;<sub>x</sub>&minus;&sigma;<sub>y</sub>)/2&middot;cos2&theta; + &tau;<sub>xy</sub>&middot;sin2&theta;<br>
+      &tau;<sub>x&prime;y&prime;</sub> = &minus;(&sigma;<sub>x</sub>&minus;&sigma;<sub>y</sub>)/2&middot;sin2&theta; + &tau;<sub>xy</sub>&middot;cos2&theta;
+    </div>
+    <p>Mohr's circle is simply a graphical form of these two equations: plotting (&sigma;, &minus;&tau;) pairs as &theta; sweeps traces a circle centered at C = (&sigma;<sub>x</sub>+&sigma;<sub>y</sub>)/2 with radius R = &radic;[((&sigma;<sub>x</sub>&minus;&sigma;<sub>y</sub>)/2)&sup2; + &tau;<sub>xy</sub>&sup2;]. Every point on the circle corresponds to one physical orientation of the stress element, and the circle's own geometry hands you the quantities engineers actually design against without any extra algebra:</p>
+    <ul>
+      <li><b>Principal stresses</b> &sigma;<sub>1,2</sub> = C &plusmn; R &mdash; the maximum and minimum normal stresses at the point, occurring on planes where shear is exactly zero.</li>
+      <li><b>Maximum in-plane shear</b> &tau;<sub>max</sub> = R, occurring 45&deg; away from the principal directions.</li>
+      <li><b>Hydrostatic / deviatoric split</b> &mdash; the stress tensor decomposes into a hydrostatic part (equal normal stress C in every direction, no shear, responsible for volume change) and a deviatoric part (what's left, responsible for shape change/yielding) &mdash; the circle's center and the circle itself, respectively.</li>
+    </ul>
+    <p>The tool also reports two common equivalent-stress measures used to compare a multi-axial stress state against a material's uniaxial yield strength: the <b>Tresca (maximum shear stress) criterion</b>, &sigma;<sub>Tresca</sub> = &sigma;<sub>1</sub> &minus; &sigma;<sub>2</sub> (conservative, simple to apply by hand), and the <b>von Mises criterion</b>, &sigma;<sub>vM</sub> = &radic;(&sigma;<sub>1</sub>&sup2; &minus; &sigma;<sub>1</sub>&sigma;<sub>2</sub> + &sigma;<sub>2</sub>&sup2;) for plane stress (generally a closer match to observed ductile-material yielding). Both are plotted against the current stress state so you can see, rather than just calculate, how close a given loading sits to yield.</p>
+    <p>Typical uses: finding the worst-case orientation of a weld or bolted joint under combined loading, checking a pressure-vessel wall element, or simply building intuition for how normal and shear stress trade off as you rotate the cutting plane through a stressed point.</p>
   </div>
 
   <div class="layout">
@@ -163,6 +187,8 @@ svg text{font-size:11px;fill:#111827}
   </div>
 
   <div class="ad-slot-bottom" aria-hidden="true"><span>Advertisement</span><span>728 &times; 90</span></div>
+
+  <footer class="sitefoot"><a href="../about/">About</a> &middot; <a href="../privacy-policy/">Privacy Policy</a></footer>
 </div>
 
 <script>
