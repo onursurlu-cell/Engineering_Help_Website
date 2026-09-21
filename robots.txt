@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://onurhelps.com/sitemap.xml
