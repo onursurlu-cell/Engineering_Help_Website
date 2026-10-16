@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pin–Slot Assembly Gauge Calculator</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f24; --muted:#5b6470; --line:#dde1e6;
+  --accent:#1f5fbf; --ok:#1d7a3e; --ok-bg:#e6f4ea; --bad:#b3261e; --bad-bg:#fbe9e7;
+  --warn:#8a5a00; --warn-bg:#fff4dc; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171b; --card:#1d2126; --ink:#e7eaee; --muted:#a3acb7; --line:#323840;
+    --accent:#7aa7ef; --ok:#7fd49a; --ok-bg:#16301f; --bad:#f2a49d; --bad-bg:#3a1a17;
+    --warn:#f3c66b; --warn-bg:#352a12;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:28px 16px 8px;max-width:1200px;margin:0 auto}
+h1{font-size:1.5rem;margin:0 0 4px}
+header p{margin:0;color:var(--muted);max-width:820px}
+main{max-width:1200px;margin:0 auto;padding:8px 16px 48px;display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 10px}
+h3{font-size:.95rem;margin:14px 0 6px}
+details{border-top:1px solid var(--line);padding:6px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:600;padding:4px 0}
+.field{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;padding:4px 0}
+.field label{font-size:.85rem}
+.field code{font-family:var(--mono);font-size:.8rem;color:var(--accent);display:block}
+.field span.d{color:var(--muted);font-size:.78rem}
+.field input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:.85rem;text-align:right}
+.field.text{grid-template-columns:1fr}
+.field.text input{text-align:left}
+.field input.err{border-color:var(--bad);background:var(--bad-bg)}
+.inputs{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:900px){.inputs{position:static;max-height:none}}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:.85rem}
+button:hover{border-color:var(--accent)}
+.fits{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fit{border-radius:8px;padding:12px;border:1px solid var(--line)}
+.fit.ok{background:var(--ok-bg);border-color:transparent}
+.fit.bad{background:var(--bad-bg);border-color:transparent}
+.fit.na{background:var(--warn-bg);border-color:transparent}
+.fit .t{font-size:.85rem;color:var(--muted)}
+.fit .v{font-family:var(--mono);font-size:1.35rem;font-weight:600;margin:2px 0}
+.fit.ok .v{color:var(--ok)} .fit.bad .v{color:var(--bad)} .fit.na .v{color:var(--warn)}
+.fit .s{font-size:.82rem}
+.fit.main{grid-column:1/-1}
+.msgs div{padding:8px 10px;border-radius:6px;margin:6px 0;font-size:.88rem}
+.msgs .e{background:var(--bad-bg);color:var(--bad)}
+.msgs .w{background:var(--warn-bg);color:var(--warn)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+td.hi{color:var(--warn);font-weight:600}
+td.over{color:var(--bad);font-weight:600}
+.note{color:var(--muted);font-size:.82rem;margin:8px 0 0}
+ul.todo{margin:0;padding-left:18px}
+ul.todo li{margin:4px 0}
+.pill{font-size:.75rem;padding:1px 7px;border-radius:10px;margin-left:6px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.open{background:var(--warn-bg);color:var(--warn)}
+@media print{
+  .inputs,.btns{display:none} main{display:block} body{background:#fff;color:#000}
+  .card{border:1px solid #ccc;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pin–Slot Assembly Gauge Calculator</h1>
+  <p>Worst-case fit check between Part L and Part U with shoulder bolts, and functional go-gauge sizing for both suppliers. All values in mm. Part features use position/perpendicularity at MMC with datums B and C at MMB. Gauge tolerances are applied so that a gauge error can never pass a bad part.</p>
+</header>
+<main>
+  <section class="card inputs" aria-label="Inputs">
+    <h2>Inputs</h2>
+    <form id="form" autocomplete="off"></form>
+    <div class="btns">
+      <button type="button" id="reset">Reset to example values</button>
+      <button type="button" id="print">Print results</button>
+    </div>
+  </section>
+  <section aria-label="Results">
+    <div class="card">
+      <h2>Fit results (worst case, drawing limits)</h2>
+      <div class="msgs" id="msgs"></div>
+      <div class="fits" id="fits"></div>
+      <p class="note">Minimum radial gaps. A negative value is an interference; its absolute value is the maximum interference. The shank result assumes the datum reference frames of both parts coincide and takes no credit for the remaining pin play, so it is conservative. Gauge tolerances and wear do not enter the fit results.</p>
+    </div>
+    <div class="card">
+      <h2>Gauge L — checks Part L</h2>
+      <div class="tablewrap" id="gaugeL"></div>
+    </div>
+    <div class="card">
+      <h2>Gauge U — checks Part U</h2>
+      <div class="tablewrap" id="gaugeU"></div>
+      <p class="note">Before gauging, screw the four threaded setting pins into Thole 1–4. The part passes when it seats fully on the gauge face with all gauge elements engaged.</p>
+    </div>
+    <div class="card">
+      <h2>To do on the drawings (suit_ parameters)</h2>
+      <ul class="todo" id="todo"></ul>
+      <p class="note">These parameters do not affect the fit results or gauge sizes, but each drawing must define them.</p>
+    </div>
+  </section>
+</main>
+<script>
+const GROUPS = [
+ {t:"Part L — datum features (Pin 1, Pin 2)", f:[
+  ["D_Pin1","Pin 1 nominal diameter",8],
+  ["tol_D_Pin1","Pin 1 diameter tolerance ±",0.005],
+  ["tol_Perp_Pin1","Pin 1 perpendicularity to A at MMC (Ø zone)",0.01],
+  ["D_Pin2","Pin 2 nominal diameter",8],
+  ["tol_D_Pin2","Pin 2 diameter tolerance ±",0.005],
+  ["tol_Pos_Pin2","Pin 2 position to A|B(M) at MMC (Ø zone)",0.02],
+  ["tol_Perp_Pin2","Pin 2 perpendicularity refinement to A at MMC (Ø zone)",0.01],
+  ["x_Pin2","Basic distance Pin 1 → Pin 2",120],
+  ["H_Pin_L","Max. height of Pin 1 and Pin 2 above datum A",10]]},
+ {t:"Part L — Hole 1L–4L", f:[
+  ["D_Hole1234L","Nominal diameter",10.5],
+  ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
+  ["tol_Pos_Hole1234L","Position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
+  ["x_Hole1L","Hole 1L basic x",20],["y_Hole1L","Hole 1L basic y",40],
+  ["x_Hole2L","Hole 2L basic x",100],["y_Hole2L","Hole 2L basic y",40],
+  ["x_Hole3L","Hole 3L basic x",20],["y_Hole3L","Hole 3L basic y",-40],
+  ["x_Hole4L","Hole 4L basic x",100],["y_Hole4L","Hole 4L basic y",-40]]},
+ {t:"Part U — datum features (Hole 1U, Slot)", f:[
+  ["D_Hole1U","Hole 1U nominal diameter",8.04],
+  ["tol_D_Hole1U","Hole 1U diameter tolerance ±",0.01],
+  ["tol_Perp_Hole1U","Hole 1U perpendicularity to A at MMC (Ø zone)",0.01],
+  ["W_Slot","Slot nominal width (y)",8.05],
+  ["tol_W_Slot","Slot width tolerance ±",0.01],
+  ["tol_Pos_W_Slot","Slot width position to A|B(M) at MMC",0.01],
+  ["tol_Perp_Slot","Slot width perpendicularity refinement to A at MMC",0.005],
+  ["L_Slot","Slot nominal overall length (x)",12],
+  ["tol_L_Slot","Slot length tolerance ±",0.1],
+  ["tol_Pos_L_Slot","Slot length position to A|B(M) at MMC",0.2],
+  ["H_BC_U","Max. depth of Hole 1U and Slot",15]]},
+ {t:"Part U — Thole 1–4", f:[
+  ["Mthread","Thread size (8 for M8)",8],
+  ["tol_Pos_Thole1234","Projected position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
+  ["H_Proj_Thole","Projected zone height = max. thickness of Part L at Hole 1L–4L",20]]},
+ {t:"Shoulder bolts", f:[
+  ["D_shank","Shank nominal diameter",10],
+  ["tol_D_shank","Shank diameter tolerance ±",0.02],
+  ["tol_Coax_bolt","Thread-to-shank coaxiality (Ø zone)",0.05]]},
+ {t:"Gauge L — gauge-maker tolerances (absolute)", f:[
+  ["gtol_Size_GL_B","GL_B hole size tolerance",0.001],
+  ["gtol_Perp_GL_B","GL_B hole perpendicularity",0.001],
+  ["gtol_Size_GL_C","GL_C hole size tolerance",0.001],
+  ["gtol_Pos_GL_C","GL_C hole position",0.002],
+  ["gtol_Size_GL_H","GL_1–4 pin size tolerance",0.002],
+  ["gtol_Pos_GL_H","GL_1–4 pin position",0.003]]},
+ {t:"Gauge U — gauge-maker tolerances (absolute)", f:[
+  ["gtol_Size_GU_B","GU_B pin size tolerance",0.001],
+  ["gtol_Perp_GU_B","GU_B pin perpendicularity",0.001],
+  ["gtol_W_GU_C","GU_C obround width tolerance",0.001],
+  ["gtol_L_GU_C","GU_C obround length tolerance",0.005],
+  ["gtol_Pos_GU_C","GU_C obround position",0.002],
+  ["gtol_Size_GU_T","GU_1–4 hole size tolerance",0.002],
+  ["gtol_Pos_GU_T","GU_1–4 hole position",0.003],
+  ["gtol_Size_SetPin","Setting pin body size tolerance",0.002],
+  ["gtol_Coax_SetPin","Setting pin body-to-thread coaxiality",0.003],
+  ["gwear","Wear allowance (all engaging elements)",0.001]]}
+];
+const SUITS = [
+  ["suit_Flat_A_L","Flatness of datum feature A, Part L"],
+  ["suit_Flat_A_U","Flatness of datum feature A, Part U"],
+  ["suit_Bas_Edges_L","Basic dimensions locating the edges of Part L from A|B|C"],
+  ["suit_Bas_Edges_U","Basic dimensions locating the edges of Part U from A|B|C"],
+  ["suit_Prof_Edges_L","Profile tolerance of the edges of Part L to A|B|C"],
+  ["suit_Prof_Edges_U","Profile tolerance of the edges of Part U to A|B|C"],
+  ["suit_Flat_GL","Flatness of the gauge face, Gauge L"],
+  ["suit_Flat_GU","Flatness of the gauge face, Gauge U"]
+];
+const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","H_BC_U","Mthread","H_Proj_Thole","D_shank"]);
+const isCoord = id => /^[xy]_Hole\dL$/.test(id);
+
+const form = document.getElementById("form");
+function build(){
+  form.innerHTML = "";
+  GROUPS.forEach((g,i)=>{
+    const d = document.createElement("details"); if(i<5) d.open = true;
+    d.innerHTML = `<summary>${g.t}</summary>`;
+    g.f.forEach(([id,desc,def])=>{
+      const row = document.createElement("div"); row.className="field";
+      row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="number" step="any" inputmode="decimal" value="${def}">`;
+      d.appendChild(row);
+    });
+    form.appendChild(d);
+  });
+  const d = document.createElement("details");
+  d.innerHTML = `<summary>suit_ parameters (optional, for the to-do list)</summary>`;
+  SUITS.forEach(([id,desc])=>{
+    const row = document.createElement("div"); row.className="field text";
+    row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="text" placeholder="value or note">`;
+    d.appendChild(row);
+  });
+  form.appendChild(d);
+}
+
+const f4 = x => (Math.abs(x) < 5e-10 ? 0 : x).toFixed(4);
+const pct = x => isFinite(x) ? Math.round(x*100)+" %" : "—";
+
+function read(){
+  const v = {}, errs = [];
+  GROUPS.forEach(g=>g.f.forEach(([id])=>{
+    const el = document.getElementById(id);
+    const n = parseFloat(el.value);
+    let bad = !isFinite(n);
+    if(!bad && !isCoord(id) && !NON_TOL.has(id) && n < 0) bad = true;
+    if(!bad && NON_TOL.has(id) && n <= 0) bad = true;
+    el.classList.toggle("err", bad);
+    if(bad) errs.push(id); v[id] = n;
+  }));
+  return {v, errs};
+}
+
+function pinEl(nominal, loc, size, w){ const min = nominal + loc + w; return {min, max:min+size, used:loc+w+size}; }
+function holeEl(nominal, loc, size, w, extra=0){ const max = nominal - loc - w - extra; return {min:max-size, max, used:loc+w+size+extra}; }
+
+function calc(){
+  const {v, errs} = read();
+  const msgs = document.getElementById("msgs");
+  msgs.innerHTML = "";
+  if(errs.length){
+    msgs.innerHTML = `<div class="e">Check these inputs (missing, or negative where not allowed): ${errs.join(", ")}</div>`;
+    ["fits","gaugeL","gaugeU"].forEach(id=>document.getElementById(id).innerHTML="");
+    todo(); return;
+  }
+  const VC_B_L = v.D_Pin1 + v.tol_D_Pin1 + v.tol_Perp_Pin1;
+  const VC_C_L = v.D_Pin2 + v.tol_D_Pin2 + v.tol_Pos_Pin2;
+  const VC_H_L = v.D_Hole1234L - v.tol_D_Hole1234L - v.tol_Pos_Hole1234L;
+  const VC_B_U = v.D_Hole1U - v.tol_D_Hole1U - v.tol_Perp_Hole1U;
+  const VC_W_U = v.W_Slot - v.tol_W_Slot - v.tol_Pos_W_Slot;
+  const VC_L_U = v.L_Slot - v.tol_L_Slot - v.tol_Pos_L_Slot;
+  const VC_T_U = v.Mthread + v.tol_Pos_Thole1234;
+
+  const G_B  = (VC_B_U - VC_B_L)/2;
+  const G_CW = (VC_W_U - VC_C_L)/2;
+  const G_CL = (VC_L_U - VC_C_L)/2;
+  const G_S  = ((v.D_Hole1234L - v.tol_D_Hole1234L) - (v.D_shank + v.tol_D_shank)
+               - v.tol_Pos_Hole1234L - v.tol_Pos_Thole1234 - v.tol_Coax_bolt)/2;
+  const datumOK = G_B >= 0 && G_CW >= 0 && G_CL >= 0;
+
+  // warnings
+  const w = [];
+  if(v.tol_Perp_Pin2 >= v.tol_Pos_Pin2) w.push("tol_Perp_Pin2 is not smaller than tol_Pos_Pin2, so the refinement has no effect.");
+  if(v.tol_Perp_Slot >= v.tol_Pos_W_Slot) w.push("tol_Perp_Slot is not smaller than tol_Pos_W_Slot, so the refinement has no effect.");
+  if(!datumOK) w.push("At least one datum-feature fit is negative. The parts may not go together on the pins, and the shank result is not valid until all three datum fits are zero or positive.");
+  [VC_B_L,VC_C_L,VC_H_L,VC_B_U,VC_W_U,VC_L_U].forEach((x,i)=>{ if(x<=0) w.push("A virtual condition is zero or negative — check the tolerances."); });
+  msgs.innerHTML = [...new Set(w)].map(t=>`<div class="w">${t}</div>`).join("");
+
+  const card = (title, val, sub, main=false, na=false) => {
+    const cls = na ? "na" : (val >= 0 ? "ok" : "bad");
+    const txt = na ? "not valid" : (val >= 0 ? "Minimum gap" : "Maximum interference");
+    return `<div class="fit ${cls}${main?" main":""}"><div class="t">${title}</div><div class="v">${f4(Math.abs(val))} mm</div><div class="s">${txt}${na?" — fix datum fits first (value shown: "+f4(val)+")":""} · ${sub}</div></div>`;
+  };
+  document.getElementById("fits").innerHTML =
+    card("Shank in Hole 1L–4L (G_S)", G_S, "conservative, no pin-play credit", true, !datumOK) +
+    card("Pin 1 in Hole 1U (G_B)", G_B, `VC ${f4(VC_B_U)} vs ${f4(VC_B_L)}`) +
+    card("Pin 2 in Slot, width (G_CW)", G_CW, `VC ${f4(VC_W_U)} vs ${f4(VC_C_L)}`) +
+    card("Pin 2 in Slot, length (G_CL)", G_CL, `VC ${f4(VC_L_U)} vs ${f4(VC_C_L)}`);
+
+  const gw = v.gwear;
+  const head = `<tr><th>Element</th><th>Type</th><th>Checks</th><th>Basic location (x, y)</th><th>Nominal (VC)</th><th>Made size min</th><th>Made size max</th><th>Location tol.</th><th>Depth / length ≥</th><th title="Share of the related part tolerance consumed by gauge tolerances and wear">Part tol. used</th></tr>`;
+  const row = (el,type,chk,loc,nom,r,ltol,dl,partTol) => {
+    const share = r.used/partTol;
+    const cls = share >= 1 ? "over" : (share > 0.25 ? "hi" : "");
+    return `<tr><td>${el}</td><td>${type}</td><td>${chk}</td><td class="n">${loc}</td><td class="n">${f4(nom)}</td><td class="n">${f4(r.min)}</td><td class="n">${f4(r.max)}</td><td class="n">${ltol}</td><td class="n">${f4(dl)}</td><td class="n ${cls}">${pct(share)}</td></tr>`;
+  };
+  const xy = (x,y)=>`${f4(x)}, ${f4(y)}`;
+  const gl = [];
+  gl.push(row("GL_B","Hole","Datum B (Pin 1)",xy(0,0),VC_B_L,holeEl(VC_B_L,v.gtol_Perp_GL_B,v.gtol_Size_GL_B,gw),"⟂ "+f4(v.gtol_Perp_GL_B),v.H_Pin_L,v.tol_Perp_Pin1));
+  gl.push(row("GL_C","Hole","Datum C, position of Pin 2",xy(v.x_Pin2,0),VC_C_L,holeEl(VC_C_L,v.gtol_Pos_GL_C,v.gtol_Size_GL_C,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_C),v.H_Pin_L,v.tol_Pos_Pin2));
+  for(let i=1;i<=4;i++) gl.push(row("GL_"+i,"Pin",`Position of Hole ${i}L`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_H_L,pinEl(VC_H_L,v.gtol_Pos_GL_H,v.gtol_Size_GL_H,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_H),v.H_Proj_Thole,v.tol_Pos_Hole1234L));
+  document.getElementById("gaugeL").innerHTML = `<table>${head}${gl.join("")}</table>`;
+
+  const gu = [];
+  gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.H_BC_U,v.tol_Perp_Hole1U));
+  gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_W_Slot));
+  gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_L_Slot));
+  for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.H_Proj_Thole,v.tol_Pos_Thole1234));
+  const sp = {min:v.Mthread, max:v.Mthread+v.gtol_Size_SetPin};
+  gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.H_Proj_Thole)}</td><td class="n">—</td></tr>`);
+  document.getElementById("gaugeU").innerHTML = `<table>${head}${gu.join("")}</table><p class="note">“Part tol. used” is the share of the related part position or perpendicularity tolerance consumed by the gauge’s own tolerances and wear. Above 25 % (amber) the gauge rejects a noticeable share of good parts at the limit; at 100 % or more (red) even a perfect part at MMC may be rejected.</p>`;
+  todo();
+}
+
+function todo(){
+  document.getElementById("todo").innerHTML = SUITS.map(([id,desc])=>{
+    const val = document.getElementById(id).value.trim();
+    return `<li><code>${id}</code> — ${desc}${val ? `: <strong>${val.replace(/</g,"&lt;")}</strong><span class="pill ok">set</span>` : `<span class="pill open">to define</span>`}</li>`;
+  }).join("");
+}
+
+build();
+form.addEventListener("input", calc);
+document.getElementById("reset").addEventListener("click", ()=>{ build(); calc(); });
+document.getElementById("print").addEventListener("click", ()=>window.print());
+calc();
+</script>
+</body>
+</html>
