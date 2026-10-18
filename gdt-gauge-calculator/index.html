@@ -80,6 +80,11 @@ footer{max-width:1200px;margin:20px auto 0;padding:18px 16px 32px;border-top:1px
 footer a{color:var(--muted);text-decoration:none}
 footer a:hover{color:var(--accent)}
 @media print{.ad-slot-bottom,footer{display:none}}
+.theory p{margin:0 0 10px}
+.theory p:last-child{margin-bottom:0}
+.theory code{font-family:var(--mono);color:var(--accent);font-size:.82em}
+.theory .formula{font-family:var(--mono);font-size:.82rem;line-height:1.7;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;overflow-x:auto}
+@media print{.theory{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -89,6 +94,30 @@ footer a:hover{color:var(--accent)}
   <p>Worst-case fit check between Part L and Part U with shoulder bolts, and functional go-gauge sizing for both suppliers. All values in mm. Part features use position/perpendicularity at MMC with datums B and C at MMB. Gauge tolerances are applied so that a gauge error can never pass a bad part.</p>
 </header>
 <main>
+  <div class="card theory" style="grid-column:1/-1">
+    <h2>Background &amp; theory</h2>
+    <p>This tool checks a fixed-fastener assembly: Part L carries two locating pins (Pin 1 at datum B, Pin 2 at datum C) and four clearance holes for shoulder bolts; Part U carries the mating hole and slot that the pins engage (Hole 1U at datum B, the slot at datum C) and four threaded holes that the bolts screw into. All of these engagement features are located by position or perpendicularity at MMC, with datums B and C held at MMB — the ⓜ modifier on the datum features themselves, not just on the located feature. That combination is what lets a worst-case calculation reduce the whole assembly to a handful of numbers instead of a full tolerance stack-up.</p>
+    <p>The key idea is the <code>virtual condition</code> (VC): the boundary a feature can never cross once its size and location tolerances are both used up in the same direction. A pin (external feature) grows its effective envelope at MMC, so its VC adds the location tolerance to the MMC size. A hole or slot (internal feature) shrinks the same way, so its VC subtracts the location tolerance from the MMC size. Comparing the two parts' VCs at each engagement location — never their nominal sizes — gives the true worst-case fit, because each VC already represents the worst mating condition that part is allowed to present:</p>
+    <div class="formula">
+VC_B_L = D_Pin1 + tol_D_Pin1 + tol_Perp_Pin1&nbsp; &nbsp;(Pin 1, datum B)<br>
+VC_C_L = D_Pin2 + tol_D_Pin2 + tol_Pos_Pin2&nbsp; &nbsp;(Pin 2, datum C)<br>
+VC_H_L = D_Hole1234L &minus; tol_D_Hole1234L &minus; tol_Pos_Hole1234L&nbsp; &nbsp;(clearance holes, Part L)<br>
+VC_B_U = D_Hole1U &minus; tol_D_Hole1U &minus; tol_Perp_Hole1U&nbsp; &nbsp;(Hole 1U, datum B)<br>
+VC_W_U, VC_L_U = W_Slot / L_Slot &minus; tol_W_Slot / tol_L_Slot &minus; tol_Pos_W_Slot / tol_Pos_L_Slot&nbsp; &nbsp;(slot, datum C)<br>
+VC_T_U = Mthread + tol_Pos_Thole1234&nbsp; &nbsp;(threaded holes, projected zone, Part U)
+    </div>
+    <p>Each reported fit is half the difference between the two matching VCs — the minimum radial gap (or, if negative, the maximum interference) guaranteed under worst case:</p>
+    <div class="formula">
+G_B&nbsp; = (VC_B_U &minus; VC_B_L) / 2&nbsp; &nbsp;Pin 1 in Hole 1U<br>
+G_CW = (VC_W_U &minus; VC_C_L) / 2&nbsp; &nbsp;Pin 2 in the slot, width direction<br>
+G_CL = (VC_L_U &minus; VC_C_L) / 2&nbsp; &nbsp;Pin 2 in the slot, length direction<br>
+G_S&nbsp; = (VC_H_L &minus; D_shank &minus; tol_D_shank &minus; tol_Pos_Hole1234L &minus; tol_Pos_Thole1234 &minus; tol_Coax_bolt) / 2&nbsp; &nbsp;shank in the clearance hole
+    </div>
+    <p>G_B, G_CW and G_CL are the datum-feature fits: if any of them goes negative, the pins may not seat in the mating hole and slot at all, which also puts G_S in question — the shank-to-clearance-hole check only means something once the parts are actually registered on their datums (that's what the warning banner above the results is checking for). G_S itself is intentionally conservative: it assumes the two parts' datum reference frames coincide exactly and takes no credit for whatever play is left over at Pin 1/Hole 1U or Pin 2/slot, so the real shank clearance on an actual assembly is never worse than this number — usually better.</p>
+    <p>Thole 1–4 are threaded, so their position tolerance is called out as a <b>projected tolerance zone</b> rather than at the part surface: it governs the as-driven screw axis through the full thickness of Part L (<code>H_Proj_Thole</code>), not just where the thread starts. That's why <code>VC_T_U</code> simply adds the tolerance to the thread's nominal size rather than treating it like a plain hole.</p>
+    <p>The two functional gauges turn the same VCs into go/no-go hardware. Each gauge element is built at the mating part's VC, then tightened further by that element's own gauge-maker tolerance and a wear allowance — so a worn gauge can only reject a few more good parts near the limit, never pass a part that is actually outside its MMC/MMB zone. <b>Part tol. used</b> tracks how much of the part's own position or perpendicularity tolerance that margin consumes: comfortable under 25%, worth a second look above it, and at 100% or more the gauge is as tight as (or tighter than) the part's own tolerance zone and will start rejecting perfect parts at MMC.</p>
+    <p>This is a single worst-case snapshot, not a statistical stack-up: it answers whether the assembly is guaranteed to go together and how tight the resulting gauges are, not how often a given process will actually land near that limit. A probabilistic treatment that credits real pin play — a Monte Carlo-style simulation of the same geometry — was discussed as a future extension but is not implemented here.</p>
+  </div>
   <section class="card inputs" aria-label="Inputs">
     <h2>Inputs</h2>
     <form id="form" autocomplete="off"></form>
