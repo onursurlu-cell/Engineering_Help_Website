@@ -80,6 +80,9 @@ footer{max-width:1200px;margin:20px auto 0;padding:18px 16px 32px;border-top:1px
 footer a{color:var(--muted);text-decoration:none}
 footer a:hover{color:var(--accent)}
 @media print{.ad-slot-bottom,footer{display:none}}
+.drawing-placeholder{border:1px dashed var(--line);border-radius:8px;padding:16px;margin:0 0 10px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:.85rem;background:var(--bg)}
+.drawing-placeholder:last-child{margin-bottom:0}
+.drawing-placeholder b{display:block;color:var(--ink);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
 .theory p{margin:0 0 10px}
 .theory p:last-child{margin-bottom:0}
 .theory code{font-family:var(--mono);color:var(--accent);font-size:.82em}
@@ -118,15 +121,72 @@ G_S&nbsp; = (VC_H_L &minus; D_shank &minus; tol_D_shank &minus; tol_Pos_Hole1234
     <p>The two functional gauges turn the same VCs into go/no-go hardware. Each gauge element is built at the mating part's VC, then tightened further by that element's own gauge-maker tolerance and a wear allowance — so a worn gauge can only reject a few more good parts near the limit, never pass a part that is actually outside its MMC/MMB zone. <b>Part tol. used</b> tracks how much of the part's own position or perpendicularity tolerance that margin consumes: comfortable under 25%, worth a second look above it, and at 100% or more the gauge is as tight as (or tighter than) the part's own tolerance zone and will start rejecting perfect parts at MMC.</p>
     <p>This is a single worst-case snapshot, not a statistical stack-up: it answers whether the assembly is guaranteed to go together and how tight the resulting gauges are, not how often a given process will actually land near that limit. A probabilistic treatment that credits real pin play — a Monte Carlo-style simulation of the same geometry — was discussed as a future extension but is not implemented here.</p>
   </div>
-  <section class="card inputs" aria-label="Inputs">
-    <h2>Inputs</h2>
-    <form id="form" autocomplete="off"></form>
-    <div class="btns">
+  <div class="card" style="grid-column:1/-1">
+    <div class="btns" style="margin-top:0">
       <button type="button" id="reset">Reset to example values</button>
       <button type="button" id="print">Print results</button>
     </div>
-  </section>
-  <section aria-label="Results">
+  </div>
+
+  <div class="card" aria-label="Part L inputs">
+    <h2>Part L</h2>
+    <div id="formPartL"></div>
+  </div>
+  <div class="card" aria-label="Part L drawings">
+    <h2>Part L — drawings</h2>
+    <div class="drawing-placeholder"><div><b>Isometric drawing</b>Part L, annotated with the values entered on the left.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — datums A, B, C</b>Hole 1L–4L: the circle left free once position to A|B(M)|C(M) is applied.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced.</div></div>
+  </div>
+
+  <div class="card" aria-label="Gauge L inputs">
+    <h2>Gauge L</h2>
+    <div id="formGaugeL"></div>
+  </div>
+  <div class="card" aria-label="Gauge L drawing">
+    <h2>Gauge L — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Gauge design</b>Gauge L, annotated with the tolerances entered on the left.</div></div>
+  </div>
+
+  <div class="card" aria-label="Part U inputs">
+    <h2>Part U</h2>
+    <div id="formPartU"></div>
+  </div>
+  <div class="card" aria-label="Part U drawings">
+    <h2>Part U — drawings</h2>
+    <div class="drawing-placeholder"><div><b>Isometric drawing</b>Part U, annotated with the values entered on the left.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — datums A, B, C</b>Thole 1–4: the circle left free once projected position to A|B(M)|C(M) is applied.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced.</div></div>
+  </div>
+
+  <div class="card" aria-label="Gauge U inputs">
+    <h2>Gauge U</h2>
+    <div id="formGaugeU"></div>
+  </div>
+  <div class="card" aria-label="Gauge U drawing">
+    <h2>Gauge U — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Gauge design</b>Gauge U, annotated with the tolerances entered on the left.</div></div>
+  </div>
+
+  <div class="card" aria-label="Shoulder bolts inputs">
+    <h2>Shoulder bolts</h2>
+    <div id="formBolts"></div>
+  </div>
+  <div class="card" aria-label="Shoulder bolts drawing">
+    <h2>Shoulder bolts — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Not decided yet</b>What to show here is still open — to brainstorm later.</div></div>
+  </div>
+
+  <div class="card" aria-label="Suit parameters">
+    <h2>Suit parameters (for the drawings)</h2>
+    <div id="formSuit"></div>
+  </div>
+  <div class="card" aria-label="Suit parameters drawing">
+    <h2>Suit parameters — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Reference drawing</b>Points out what each suit_ parameter refers to on the parts.</div></div>
+  </div>
+
+  <div style="grid-column:1/-1">
     <div class="card">
       <h2>Fit results (worst case, drawing limits)</h2>
       <div class="msgs" id="msgs"></div>
@@ -147,7 +207,7 @@ G_S&nbsp; = (VC_H_L &minus; D_shank &minus; tol_D_shank &minus; tol_Pos_Hole1234
       <ul class="todo" id="todo"></ul>
       <p class="note">These parameters do not affect the fit results or gauge sizes, but each drawing must define them.</p>
     </div>
-  </section>
+  </div>
 </main>
 
 <div class="ad-slot-bottom" aria-hidden="true"><span>Advertisement</span><span>728 &times; 90</span></div>
@@ -158,7 +218,7 @@ G_S&nbsp; = (VC_H_L &minus; D_shank &minus; tol_D_shank &minus; tol_Pos_Hole1234
 
 <script>
 const GROUPS = [
- {t:"Part L — datum features (Pin 1, Pin 2)", f:[
+ {t:"Part L — datum features (Pin 1, Pin 2)", target:"formPartL", f:[
   ["D_Pin1","Pin 1 nominal diameter",8],
   ["tol_D_Pin1","Pin 1 diameter tolerance ±",0.005],
   ["tol_Perp_Pin1","Pin 1 perpendicularity to A at MMC (Ø zone)",0.01],
@@ -168,7 +228,7 @@ const GROUPS = [
   ["tol_Perp_Pin2","Pin 2 perpendicularity refinement to A at MMC (Ø zone)",0.01],
   ["x_Pin2","Basic distance Pin 1 → Pin 2",120],
   ["H_Pin_L","Max. height of Pin 1 and Pin 2 above datum A",10]]},
- {t:"Part L — Hole 1L–4L", f:[
+ {t:"Part L — Hole 1L–4L", target:"formPartL", f:[
   ["D_Hole1234L","Nominal diameter",10.5],
   ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
   ["tol_Pos_Hole1234L","Position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
@@ -176,7 +236,7 @@ const GROUPS = [
   ["x_Hole2L","Hole 2L basic x",100],["y_Hole2L","Hole 2L basic y",40],
   ["x_Hole3L","Hole 3L basic x",20],["y_Hole3L","Hole 3L basic y",-40],
   ["x_Hole4L","Hole 4L basic x",100],["y_Hole4L","Hole 4L basic y",-40]]},
- {t:"Part U — datum features (Hole 1U, Slot)", f:[
+ {t:"Part U — datum features (Hole 1U, Slot)", target:"formPartU", f:[
   ["D_Hole1U","Hole 1U nominal diameter",8.04],
   ["tol_D_Hole1U","Hole 1U diameter tolerance ±",0.01],
   ["tol_Perp_Hole1U","Hole 1U perpendicularity to A at MMC (Ø zone)",0.01],
@@ -188,22 +248,22 @@ const GROUPS = [
   ["tol_L_Slot","Slot length tolerance ±",0.1],
   ["tol_Pos_L_Slot","Slot length position to A|B(M) at MMC",0.2],
   ["H_BC_U","Max. depth of Hole 1U and Slot",15]]},
- {t:"Part U — Thole 1–4", f:[
+ {t:"Part U — Thole 1–4", target:"formPartU", f:[
   ["Mthread","Thread size (8 for M8)",8],
   ["tol_Pos_Thole1234","Projected position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
   ["H_Proj_Thole","Projected zone height = max. thickness of Part L at Hole 1L–4L",20]]},
- {t:"Shoulder bolts", f:[
+ {t:"Shoulder bolts", target:"formBolts", f:[
   ["D_shank","Shank nominal diameter",10],
   ["tol_D_shank","Shank diameter tolerance ±",0.02],
   ["tol_Coax_bolt","Thread-to-shank coaxiality (Ø zone)",0.05]]},
- {t:"Gauge L — gauge-maker tolerances (absolute)", f:[
+ {t:"Gauge L — gauge-maker tolerances (absolute)", target:"formGaugeL", f:[
   ["gtol_Size_GL_B","GL_B hole size tolerance",0.001],
   ["gtol_Perp_GL_B","GL_B hole perpendicularity",0.001],
   ["gtol_Size_GL_C","GL_C hole size tolerance",0.001],
   ["gtol_Pos_GL_C","GL_C hole position",0.002],
   ["gtol_Size_GL_H","GL_1–4 pin size tolerance",0.002],
   ["gtol_Pos_GL_H","GL_1–4 pin position",0.003]]},
- {t:"Gauge U — gauge-maker tolerances (absolute)", f:[
+ {t:"Gauge U — gauge-maker tolerances (absolute)", target:"formGaugeU", f:[
   ["gtol_Size_GU_B","GU_B pin size tolerance",0.001],
   ["gtol_Perp_GU_B","GU_B pin perpendicularity",0.001],
   ["gtol_W_GU_C","GU_C obround width tolerance",0.001],
@@ -228,19 +288,23 @@ const SUITS = [
 const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","H_BC_U","Mthread","H_Proj_Thole","D_shank"]);
 const isCoord = id => /^[xy]_Hole\dL$/.test(id);
 
-const form = document.getElementById("form");
 function build(){
-  form.innerHTML = "";
-  GROUPS.forEach((g,i)=>{
-    const d = document.createElement("details"); if(i<5) d.open = true;
+  const targets = new Set(GROUPS.map(g=>g.target));
+  targets.add("formSuit");
+  targets.forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ""; });
+  GROUPS.forEach(g=>{
+    const container = document.getElementById(g.target);
+    if(!container) return;
+    const d = document.createElement("details"); d.open = true;
     d.innerHTML = `<summary>${g.t}</summary>`;
     g.f.forEach(([id,desc,def])=>{
       const row = document.createElement("div"); row.className="field";
       row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="number" step="any" inputmode="decimal" value="${def}">`;
       d.appendChild(row);
     });
-    form.appendChild(d);
+    container.appendChild(d);
   });
+  const sc = document.getElementById("formSuit");
   const d = document.createElement("details");
   d.innerHTML = `<summary>suit_ parameters (optional, for the to-do list)</summary>`;
   SUITS.forEach(([id,desc])=>{
@@ -248,7 +312,7 @@ function build(){
     row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="text" placeholder="value or note">`;
     d.appendChild(row);
   });
-  form.appendChild(d);
+  sc.appendChild(d);
 }
 
 const f4 = x => (Math.abs(x) < 5e-10 ? 0 : x).toFixed(4);
@@ -347,7 +411,7 @@ function todo(){
 }
 
 build();
-form.addEventListener("input", calc);
+document.addEventListener("input", calc);
 document.getElementById("reset").addEventListener("click", ()=>{ build(); calc(); });
 document.getElementById("print").addEventListener("click", ()=>window.print());
 calc();
