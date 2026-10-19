@@ -80,6 +80,9 @@ footer{max-width:1200px;margin:20px auto 0;padding:18px 16px 32px;border-top:1px
 footer a{color:var(--muted);text-decoration:none}
 footer a:hover{color:var(--accent)}
 @media print{.ad-slot-bottom,footer{display:none}}
+.paused-banner{max-width:1200px;margin:0 auto 4px;padding:14px 16px;border:1px solid var(--warn);background:var(--warn-bg);color:var(--warn);border-radius:10px;font-size:.9rem;line-height:1.55}
+.paused-banner b{display:block;margin-bottom:4px;font-size:.95rem}
+main.paused{opacity:.45;filter:grayscale(.35);pointer-events:none;user-select:none}
 .drawing-placeholder{border:1px dashed var(--line);border-radius:8px;padding:16px;margin:0 0 10px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:.85rem;background:var(--bg)}
 .drawing-placeholder:last-child{margin-bottom:0}
 .drawing-placeholder b{display:block;color:var(--ink);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
@@ -96,7 +99,13 @@ footer a:hover{color:var(--accent)}
   <h1>Pin–Slot Assembly Gauge Calculator</h1>
   <p>Worst-case fit check between Part L and Part U with shoulder bolts, and functional go-gauge sizing for both suppliers. All values in mm. Part features use position/perpendicularity at MMC with datums B and C at MMB. Gauge tolerances are applied so that a gauge error can never pass a bad part.</p>
 </header>
-<main>
+
+<div class="paused-banner" role="alert">
+  <b>This tool is temporarily paused for revision.</b>
+  It currently assumes Part L and Part U land exactly centered on Pin 1/Hole 1U and Pin 2/the slot, which isn't what actually happens during assembly. It's being split into two separate calculators &mdash; one for hand-assembled parts that can be nudged into alignment, and one for heavy/rigid parts that land wherever the pins and slot let them and can't be adjusted afterward. The inputs below are disabled until that's done.
+</div>
+
+<main class="paused">
   <div class="card theory" style="grid-column:1/-1">
     <h2>Background &amp; theory</h2>
     <p>This tool checks a fixed-fastener assembly: Part L carries two locating pins (Pin 1 at datum B, Pin 2 at datum C) and four clearance holes for shoulder bolts; Part U carries the mating hole and slot that the pins engage (Hole 1U at datum B, the slot at datum C) and four threaded holes that the bolts screw into. All of these engagement features are located by position or perpendicularity at MMC, with datums B and C held at MMB — the ⓜ modifier on the datum features themselves, not just on the located feature. That combination is what lets a worst-case calculation reduce the whole assembly to a handful of numbers instead of a full tolerance stack-up.</p>
