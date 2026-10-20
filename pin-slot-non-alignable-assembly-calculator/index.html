@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4965698979024228" crossorigin="anonymous"></script>
+<title>Pin–Slot Located Non-Alignable Assembly Calculator</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f24; --muted:#5b6470; --line:#dde1e6;
+  --accent:#1f5fbf; --ok:#1d7a3e; --ok-bg:#e6f4ea; --bad:#b3261e; --bad-bg:#fbe9e7;
+  --warn:#8a5a00; --warn-bg:#fff4dc; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171b; --card:#1d2126; --ink:#e7eaee; --muted:#a3acb7; --line:#323840;
+    --accent:#7aa7ef; --ok:#7fd49a; --ok-bg:#16301f; --bad:#f2a49d; --bad-bg:#3a1a17;
+    --warn:#f3c66b; --warn-bg:#352a12;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:28px 16px 8px;max-width:1200px;margin:0 auto}
+h1{font-size:1.5rem;margin:0 0 4px}
+header p{margin:0;color:var(--muted);max-width:820px}
+main{max-width:1200px;margin:0 auto;padding:8px 16px 48px;display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:1.1rem;margin:0 0 10px}
+h3{font-size:.95rem;margin:14px 0 6px}
+details{border-top:1px solid var(--line);padding:6px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:600;padding:4px 0}
+.field{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center;padding:4px 0}
+.field label{font-size:.85rem}
+.field code{font-family:var(--mono);font-size:.8rem;color:var(--accent);display:block}
+.field span.d{color:var(--muted);font-size:.78rem}
+.field input{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font-family:var(--mono);font-size:.85rem;text-align:right}
+.field.text{grid-template-columns:1fr}
+.field.text input{text-align:left}
+.field input.err{border-color:var(--bad);background:var(--bad-bg)}
+.inputs{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:900px){.inputs{position:static;max-height:none}}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+button{padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);cursor:pointer;font:inherit;font-size:.85rem}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:wait}
+.fits{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.fit{border-radius:8px;padding:12px;border:1px solid var(--line)}
+.fit.ok{background:var(--ok-bg);border-color:transparent}
+.fit.bad{background:var(--bad-bg);border-color:transparent}
+.fit.na{background:var(--warn-bg);border-color:transparent}
+.fit .t{font-size:.85rem;color:var(--muted)}
+.fit .v{font-family:var(--mono);font-size:1.35rem;font-weight:600;margin:2px 0}
+.fit.ok .v{color:var(--ok)} .fit.bad .v{color:var(--bad)} .fit.na .v{color:var(--warn)}
+.fit .s{font-size:.82rem}
+.fit.main{grid-column:1/-1}
+.msgs div{padding:8px 10px;border-radius:6px;margin:6px 0;font-size:.88rem}
+.msgs .e{background:var(--bad-bg);color:var(--bad)}
+.msgs .w{background:var(--warn-bg);color:var(--warn)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+td.hi{color:var(--warn);font-weight:600}
+td.over{color:var(--bad);font-weight:600}
+tr.crit td{background:var(--warn-bg)}
+.note{color:var(--muted);font-size:.82rem;margin:8px 0 0}
+ul.todo{margin:0;padding-left:18px}
+ul.todo li{margin:4px 0}
+.pill{font-size:.75rem;padding:1px 7px;border-radius:10px;margin-left:6px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.open{background:var(--warn-bg);color:var(--warn)}
+@media print{
+  .inputs,.btns{display:none} main{display:block} body{background:#fff;color:#000}
+  .card{border:1px solid #ccc;break-inside:avoid}
+}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:5px 11px;text-decoration:none;margin-bottom:12px}
+.back-link:hover{color:var(--ink);border-color:var(--accent)}
+.ad-slot-bottom{margin:8px auto 0;max-width:728px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--line);border-radius:10px;background:var(--card);color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+footer{max-width:1200px;margin:20px auto 0;padding:18px 16px 32px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);text-align:center}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--accent)}
+@media print{.ad-slot-bottom,footer{display:none}}
+.drawing-placeholder{border:1px dashed var(--line);border-radius:8px;padding:16px;margin:0 0 10px;min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:.85rem;background:var(--bg)}
+.drawing-placeholder:last-child{margin-bottom:0}
+.drawing-placeholder b{display:block;color:var(--ink);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.theory p{margin:0 0 10px}
+.theory p:last-child{margin-bottom:0}
+.theory code{font-family:var(--mono);color:var(--accent);font-size:.82em}
+.theory .formula{font-family:var(--mono);font-size:.82rem;line-height:1.7;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;overflow-x:auto}
+@media print{.theory{break-inside:avoid}}
+.note-box{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn);padding:10px 12px;border-radius:8px;font-size:.85rem;margin:0 0 10px}
+.server-note{background:#eef4ff;border:1px solid #bfd2ff;color:var(--ink);padding:10px 12px;border-radius:8px;font-size:.85rem;margin:0 0 12px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .server-note{background:#17233a;border-color:#2b4a7a;color:var(--ink)}}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.progress{font-size:.85rem;color:var(--muted);margin-top:8px;display:flex;align-items:center}
+.stale{opacity:.5}
+.case2box{margin-top:6px}
+@media print{.spinner{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <a href="../" class="back-link">&larr; Main page</a>
+  <h1>Pin–Slot Located Non-Alignable Assembly Calculator</h1>
+  <p>Worst-case fit check between Part L and Part U with shoulder bolts, for assemblies that are seated on the pins once and can never be nudged or re-tried afterward &mdash; a crane- or hoist-lowered part, or anything too heavy to slide by hand. All values in mm. Part features use position/perpendicularity at MMC with datums B and C at MMB. Gauge tolerances are applied so that a gauge error can never pass a bad part.</p>
+</header>
+
+<main>
+  <div class="card theory" style="grid-column:1/-1">
+    <h2>Background &amp; theory</h2>
+    <p>This tool checks a fixed-fastener assembly: Part L carries two locating pins (Pin 1 at datum B, Pin 2 at datum C) and four clearance holes for shoulder bolts; Part U carries the mating hole and slot that the pins engage (Hole 1U at datum B, the slot at datum C) and four threaded holes that the bolts screw into. All of these engagement features are located by position or perpendicularity at MMC, with datums B and C held at MMB — the ⓜ modifier on the datum features themselves, not just on the located feature. That combination is what lets a worst-case calculation reduce the whole assembly to a handful of numbers instead of a full tolerance stack-up.</p>
+    <p>The key idea is the <code>virtual condition</code> (VC): the boundary a feature can never cross once its size and location tolerances are both used up in the same direction. A pin (external feature) grows its effective envelope at MMC, so its VC adds the location tolerance to the MMC size. A hole or slot (internal feature) shrinks the same way, so its VC subtracts the location tolerance from the MMC size. Comparing the two parts' VCs at each engagement location — never their nominal sizes — gives the true worst-case fit, because each VC already represents the worst mating condition that part is allowed to present:</p>
+    <div class="formula">
+VC_B_L = D_Pin1 + tol_D_Pin1 + tol_Perp_Pin1&nbsp; &nbsp;(Pin 1, datum B)<br>
+VC_C_L = D_Pin2 + tol_D_Pin2 + tol_Pos_Pin2&nbsp; &nbsp;(Pin 2, datum C)<br>
+VC_H_L = D_Hole1234L &minus; tol_D_Hole1234L &minus; tol_Pos_Hole1234L&nbsp; &nbsp;(clearance holes, Part L)<br>
+VC_B_U = D_Hole1U &minus; tol_D_Hole1U &minus; tol_Perp_Hole1U&nbsp; &nbsp;(Hole 1U, datum B)<br>
+VC_W_U, VC_L_U = W_Slot / L_Slot &minus; tol_W_Slot / tol_L_Slot &minus; tol_Pos_W_Slot / tol_Pos_L_Slot&nbsp; &nbsp;(slot, datum C)<br>
+VC_T_U = Mthread + tol_Pos_Thole1234&nbsp; &nbsp;(threaded holes, projected zone, Part U)
+    </div>
+    <p>The datum-feature fits are each half the difference between the two matching VCs — the minimum radial gap (or, if negative, the maximum interference) guaranteed under worst case, at Pin 1/Hole 1U and at Pin 2/the slot:</p>
+    <div class="formula">
+G_B&nbsp; = (VC_B_U &minus; VC_B_L) / 2&nbsp; &nbsp;Pin 1 in Hole 1U &mdash; a round pin in a round hole, so this is free play in <b>any</b> direction<br>
+G_CW = (VC_W_U &minus; VC_C_L) / 2&nbsp; &nbsp;Pin 2 in the slot, width direction (perpendicular to the slot)<br>
+G_CL = (VC_L_U &minus; VC_C_L) / 2&nbsp; &nbsp;Pin 2 in the slot, length direction (along the slot)
+    </div>
+    <p>If any of G_B, G_CW or G_CL goes negative, the pins cannot seat in the mating hole and slot at all — nothing past this point means anything until all three are zero or positive (that's what the warning banner above the results is checking for).</p>
+    <p><b>Why this page is different from a hand-assembled fit check.</b> Once Part U is lowered onto Part L's pins and seated, it is done — there is no sliding it into a better position afterward (the real case this page was built for: a half-ton part lowered by crane onto two tapered locating pins, with no way to lift and retry once seated, for Working-at-Height / Human-Factors reasons). So the shoulder-bolt fit cannot assume the two parts' datum reference frames happen to land centered on each other. Part U's whole body can sit anywhere the pin/hole and pin/slot play <i>structurally allows</i> — some translation (dx, dy) of its datum origin, plus some rotation θ about that origin, with Pin 1 free to translate anywhere inside a disk of radius G_B and Pin 2 constrained to stay inside the slot's width (G_CW) and length (G_CL) play. Whichever combination actually occurs on a given real assembly is not knowable in advance, so every shoulder-bolt hole has to be checked against the <b>worst</b> combination the tolerances allow — not the centered, zero-shift case.</p>
+    <p>At a given (dx, dy, θ), a shoulder-bolt hole at basic location (x, y) relative to Pin 1 sees its mating threaded hole in Part U displaced from that same basic location by a <b>registration shift</b>:</p>
+    <div class="formula">
+shift_x(x,y) = dx + x&middot;cos&theta; &minus; y&middot;sin&theta; &minus; x<br>
+shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
+    </div>
+    <p>A hole farther from Pin 1 sees more shift from the same rotation than one close to it, which is why each of the four holes must be checked independently rather than sharing one number — the narrowest result is the critical hole, and the shoulder bolt must still fit it with all of its own tolerances applied, with a zero or positive gap. The <b>Calculate</b> button below runs a dense numerical search of every (dx, dy, θ) combination the pin/slot play structurally permits and reports, for each hole, the single worst registration shift found anywhere in that search — not an analytical shortcut, and not an assumption that the shift is small. That search is what runs on the private server (see the note by the button) rather than live in the browser, because checking it this thoroughly is too slow to repeat on every keystroke.</p>
+    <p>The one simplifying assumption in this model is that both parts are rigid — they don't flex or deform as they seat under their own weight or the crane's handling loads. That assumption gets <i>more</i> accurate for heavier, stiffer parts, not less, so it fits the scenario this page is built for.</p>
+    <p>The two functional gauges turn the datum-feature VCs into go/no-go hardware. Each gauge element is built at the mating part's VC, then tightened further by that element's own gauge-maker tolerance and a wear allowance — so a worn gauge can only reject a few more good parts near the limit, never pass a part that is actually outside its MMC/MMB zone. <b>Part tol. used</b> tracks how much of the part's own position or perpendicularity tolerance that margin consumes: comfortable under 25%, worth a second look above it, and at 100% or more the gauge is as tight as (or tighter than) the part's own tolerance zone and will start rejecting perfect parts at MMC. Gauging a single part is itself only possible because of MMC (fixed gauge-element sizes) and MMB (datum-feature float) — it does not depend on which assembly case this page is for, so it is unchanged from the hand-assembled version of this calculator.</p>
+    <p>This is a single worst-case snapshot, not a statistical stack-up: it answers whether the assembly is guaranteed to go together and how tight the resulting gauges are, not how often a given process will actually land near that limit.</p>
+  </div>
+  <div class="card" style="grid-column:1/-1">
+    <div class="btns" style="margin-top:0">
+      <button type="button" id="reset">Reset to example values</button>
+      <button type="button" id="print">Print results</button>
+    </div>
+  </div>
+
+  <div class="card" aria-label="Part L inputs">
+    <h2>Part L</h2>
+    <div id="formPartL"></div>
+  </div>
+  <div class="card" aria-label="Part L drawings">
+    <h2>Part L — drawings</h2>
+    <div class="drawing-placeholder"><div><b>Isometric drawing</b>Part L, annotated with the values entered on the left.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — datums A, B, C</b>Hole 1L–4L: the circle left free once position to A|B(M)|C(M) is applied.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced.</div></div>
+  </div>
+
+  <div class="card" aria-label="Gauge L inputs">
+    <h2>Gauge L</h2>
+    <div id="formGaugeL"></div>
+  </div>
+  <div class="card" aria-label="Gauge L drawing">
+    <h2>Gauge L — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Gauge design</b>Gauge L, annotated with the tolerances entered on the left.</div></div>
+  </div>
+
+  <div class="card" aria-label="Part U inputs">
+    <h2>Part U</h2>
+    <div id="formPartU"></div>
+  </div>
+  <div class="card" aria-label="Part U drawings">
+    <h2>Part U — drawings</h2>
+    <div class="drawing-placeholder"><div><b>Isometric drawing</b>Part U, annotated with the values entered on the left.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — datums A, B, C</b>Thole 1–4: the circle left free once projected position to A|B(M)|C(M) is applied.</div></div>
+    <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced.</div></div>
+  </div>
+
+  <div class="card" aria-label="Gauge U inputs">
+    <h2>Gauge U</h2>
+    <div id="formGaugeU"></div>
+  </div>
+  <div class="card" aria-label="Gauge U drawing">
+    <h2>Gauge U — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Gauge design</b>Gauge U, annotated with the tolerances entered on the left.</div></div>
+  </div>
+
+  <div class="card" aria-label="Shoulder bolts inputs">
+    <h2>Shoulder bolts</h2>
+    <div id="formBolts"></div>
+  </div>
+  <div class="card" aria-label="Shoulder bolts drawing">
+    <h2>Shoulder bolts — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Not decided yet</b>What to show here is still open — to brainstorm later.</div></div>
+  </div>
+
+  <div class="card" aria-label="Suit parameters">
+    <h2>Suit parameters (for the drawings)</h2>
+    <div id="formSuit"></div>
+  </div>
+  <div class="card" aria-label="Suit parameters drawing">
+    <h2>Suit parameters — drawing</h2>
+    <div class="drawing-placeholder"><div><b>Reference drawing</b>Points out what each suit_ parameter refers to on the parts.</div></div>
+  </div>
+
+  <div style="grid-column:1/-1">
+    <div class="card">
+      <h2>Datum-feature fits (worst case)</h2>
+      <div class="msgs" id="msgs"></div>
+      <div class="fits" id="fits"></div>
+      <p class="note">Minimum radial gaps. A negative value is an interference; its absolute value is the maximum interference. Pin 1/Hole 1U and Pin 2/the slot must both be zero or positive before the shoulder-bolt fit below means anything.</p>
+    </div>
+
+    <div class="card">
+      <h2>Shoulder bolt fit — worst-case registration shift</h2>
+      <div class="server-note">This search (every translation/rotation combination the datum play allows) runs on a private server, not in the browser, because it is too slow to repeat on every keystroke. Click <b>Calculate</b> once your inputs are set; it can take up to about 20 seconds.</div>
+      <div id="case2gate"></div>
+      <div class="btns case2box" style="margin-top:0">
+        <button type="button" id="calcCase2" class="primary">Calculate</button>
+      </div>
+      <div class="progress" id="case2progress" style="display:none"><span class="spinner"></span><span id="case2progressText">Searching every translation/rotation combination the pin/slot play allows…</span></div>
+      <div class="msgs" id="case2msgs"></div>
+      <div class="tablewrap" id="case2results"></div>
+      <p class="note">Positive = guaranteed gap. Negative (red) = guaranteed clash at that hole under worst case. The highlighted row is the critical (narrowest) hole — the shoulder bolt must clear it with a zero or positive gap. Gauge tolerances and wear do not enter this result.</p>
+    </div>
+
+    <div class="card">
+      <h2>Gauge L — checks Part L</h2>
+      <div class="tablewrap" id="gaugeL"></div>
+    </div>
+    <div class="card">
+      <h2>Gauge U — checks Part U</h2>
+      <div class="tablewrap" id="gaugeU"></div>
+      <p class="note">Before gauging, screw the four threaded setting pins into Thole 1–4. The part passes when it seats fully on the gauge face with all gauge elements engaged.</p>
+    </div>
+    <div class="card">
+      <h2>To do on the drawings (suit_ parameters)</h2>
+      <ul class="todo" id="todo"></ul>
+      <p class="note">These parameters do not affect the fit results or gauge sizes, but each drawing must define them.</p>
+    </div>
+  </div>
+</main>
+
+<div class="ad-slot-bottom" aria-hidden="true"><span>Advertisement</span><span>728 &times; 90</span></div>
+
+<footer>
+  <a href="../">onurhelps.com</a> &middot; <a href="../about/">About</a> &middot; <a href="../privacy-policy/">Privacy Policy</a>
+</footer>
+
+<script>
+/*
+  Datum-feature fits, gauge sizing and all part/gauge-maker-tolerance math
+  below run live in the browser, exactly as on the hand-assembled version of
+  this calculator — those formulas are shown in full in the theory section
+  above and are cheap to recompute on every keystroke.
+
+  The one thing that is NOT computed here is the registration-shift search
+  (translation + rotation) behind the shoulder-bolt fit: that is a dense
+  brute-force sweep, too slow to repeat live, so it runs on a private
+  Python/Flask server behind the "Calculate" button instead. See solver.py
+  in the pin-slot-case2-solver backend for that code.
+*/
+const API_URL = "https://pinslotnonalignablesolver-production.up.railway.app/calculate";
+
+const GROUPS = [
+ {t:"Part L — datum features (Pin 1, Pin 2)", target:"formPartL", f:[
+  ["D_Pin1","Pin 1 nominal diameter",8],
+  ["tol_D_Pin1","Pin 1 diameter tolerance ±",0.005],
+  ["tol_Perp_Pin1","Pin 1 perpendicularity to A at MMC (Ø zone)",0.01],
+  ["D_Pin2","Pin 2 nominal diameter",8],
+  ["tol_D_Pin2","Pin 2 diameter tolerance ±",0.005],
+  ["tol_Pos_Pin2","Pin 2 position to A|B(M) at MMC (Ø zone)",0.02],
+  ["tol_Perp_Pin2","Pin 2 perpendicularity refinement to A at MMC (Ø zone)",0.01],
+  ["x_Pin2","Basic distance Pin 1 → Pin 2",120],
+  ["H_Pin_L","Max. height of Pin 1 and Pin 2 above datum A",10]]},
+ {t:"Part L — Hole 1L–4L", target:"formPartL", f:[
+  ["D_Hole1234L","Nominal diameter",10.5],
+  ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
+  ["tol_Pos_Hole1234L","Position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
+  ["x_Hole1L","Hole 1L basic x",20],["y_Hole1L","Hole 1L basic y",40],
+  ["x_Hole2L","Hole 2L basic x",100],["y_Hole2L","Hole 2L basic y",40],
+  ["x_Hole3L","Hole 3L basic x",20],["y_Hole3L","Hole 3L basic y",-40],
+  ["x_Hole4L","Hole 4L basic x",100],["y_Hole4L","Hole 4L basic y",-40]]},
+ {t:"Part U — datum features (Hole 1U, Slot)", target:"formPartU", f:[
+  ["D_Hole1U","Hole 1U nominal diameter",8.04],
+  ["tol_D_Hole1U","Hole 1U diameter tolerance ±",0.01],
+  ["tol_Perp_Hole1U","Hole 1U perpendicularity to A at MMC (Ø zone)",0.01],
+  ["W_Slot","Slot nominal width (y)",8.05],
+  ["tol_W_Slot","Slot width tolerance ±",0.01],
+  ["tol_Pos_W_Slot","Slot width position to A|B(M) at MMC",0.01],
+  ["tol_Perp_Slot","Slot width perpendicularity refinement to A at MMC",0.005],
+  ["L_Slot","Slot nominal overall length (x)",12],
+  ["tol_L_Slot","Slot length tolerance ±",0.1],
+  ["tol_Pos_L_Slot","Slot length position to A|B(M) at MMC",0.2],
+  ["H_BC_U","Max. depth of Hole 1U and Slot",15]]},
+ {t:"Part U — Thole 1–4", target:"formPartU", f:[
+  ["Mthread","Thread size (8 for M8)",8],
+  ["tol_Pos_Thole1234","Projected position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
+  ["H_Proj_Thole","Projected zone height = max. thickness of Part L at Hole 1L–4L",20]]},
+ {t:"Shoulder bolts", target:"formBolts", f:[
+  ["D_shank","Shank nominal diameter",10],
+  ["tol_D_shank","Shank diameter tolerance ±",0.02],
+  ["tol_Coax_bolt","Thread-to-shank coaxiality (Ø zone)",0.05]]},
+ {t:"Gauge L — gauge-maker tolerances (absolute)", target:"formGaugeL", f:[
+  ["gtol_Size_GL_B","GL_B hole size tolerance",0.001],
+  ["gtol_Perp_GL_B","GL_B hole perpendicularity",0.001],
+  ["gtol_Size_GL_C","GL_C hole size tolerance",0.001],
+  ["gtol_Pos_GL_C","GL_C hole position",0.002],
+  ["gtol_Size_GL_H","GL_1–4 pin size tolerance",0.002],
+  ["gtol_Pos_GL_H","GL_1–4 pin position",0.003]]},
+ {t:"Gauge U — gauge-maker tolerances (absolute)", target:"formGaugeU", f:[
+  ["gtol_Size_GU_B","GU_B pin size tolerance",0.001],
+  ["gtol_Perp_GU_B","GU_B pin perpendicularity",0.001],
+  ["gtol_W_GU_C","GU_C obround width tolerance",0.001],
+  ["gtol_L_GU_C","GU_C obround length tolerance",0.005],
+  ["gtol_Pos_GU_C","GU_C obround position",0.002],
+  ["gtol_Size_GU_T","GU_1–4 hole size tolerance",0.002],
+  ["gtol_Pos_GU_T","GU_1–4 hole position",0.003],
+  ["gtol_Size_SetPin","Setting pin body size tolerance",0.002],
+  ["gtol_Coax_SetPin","Setting pin body-to-thread coaxiality",0.003],
+  ["gwear","Wear allowance (all engaging elements)",0.001]]}
+];
+const SUITS = [
+  ["suit_Flat_A_L","Flatness of datum feature A, Part L"],
+  ["suit_Flat_A_U","Flatness of datum feature A, Part U"],
+  ["suit_Bas_Edges_L","Basic dimensions locating the edges of Part L from A|B|C"],
+  ["suit_Bas_Edges_U","Basic dimensions locating the edges of Part U from A|B|C"],
+  ["suit_Prof_Edges_L","Profile tolerance of the edges of Part L to A|B|C"],
+  ["suit_Prof_Edges_U","Profile tolerance of the edges of Part U to A|B|C"],
+  ["suit_Flat_GL","Flatness of the gauge face, Gauge L"],
+  ["suit_Flat_GU","Flatness of the gauge face, Gauge U"]
+];
+const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","H_BC_U","Mthread","H_Proj_Thole","D_shank"]);
+const isCoord = id => /^[xy]_Hole\dL$/.test(id);
+
+function build(){
+  const targets = new Set(GROUPS.map(g=>g.target));
+  targets.add("formSuit");
+  targets.forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ""; });
+  GROUPS.forEach(g=>{
+    const container = document.getElementById(g.target);
+    if(!container) return;
+    const d = document.createElement("details"); d.open = true;
+    d.innerHTML = `<summary>${g.t}</summary>`;
+    g.f.forEach(([id,desc,def])=>{
+      const row = document.createElement("div"); row.className="field";
+      row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="number" step="any" inputmode="decimal" value="${def}">`;
+      d.appendChild(row);
+    });
+    container.appendChild(d);
+  });
+  const sc = document.getElementById("formSuit");
+  const d = document.createElement("details");
+  d.innerHTML = `<summary>suit_ parameters (optional, for the to-do list)</summary>`;
+  SUITS.forEach(([id,desc])=>{
+    const row = document.createElement("div"); row.className="field text";
+    row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="text" placeholder="value or note">`;
+    d.appendChild(row);
+  });
+  sc.appendChild(d);
+}
+
+const f4 = x => (Math.abs(x) < 5e-10 ? 0 : x).toFixed(4);
+const f6 = x => (Math.abs(x) < 5e-10 ? 0 : x).toFixed(6);
+const pct = x => isFinite(x) ? Math.round(x*100)+" %" : "—";
+
+function read(){
+  const v = {}, errs = [];
+  GROUPS.forEach(g=>g.f.forEach(([id])=>{
+    const el = document.getElementById(id);
+    const n = parseFloat(el.value);
+    let bad = !isFinite(n);
+    if(!bad && !isCoord(id) && !NON_TOL.has(id) && n < 0) bad = true;
+    if(!bad && NON_TOL.has(id) && n <= 0) bad = true;
+    el.classList.toggle("err", bad);
+    if(bad) errs.push(id); v[id] = n;
+  }));
+  return {v, errs};
+}
+
+function pinEl(nominal, loc, size, w){ const min = nominal + loc + w; return {min, max:min+size, used:loc+w+size}; }
+function holeEl(nominal, loc, size, w, extra=0){ const max = nominal - loc - w - extra; return {min:max-size, max, used:loc+w+size+extra}; }
+
+// ---------------------------------------------------------------------
+// Case 2 backend call state
+// ---------------------------------------------------------------------
+let case2State = "blank"; // 'blank' | 'shown' | 'stale'
+let lastCase2Values = null;
+
+function markCase2Stale(){
+  if(case2State === "shown"){
+    case2State = "stale";
+    const t = document.getElementById("case2results");
+    t.classList.add("stale");
+    const msgs = document.getElementById("case2msgs");
+    msgs.innerHTML = `<div class="w">Inputs changed since this result was calculated — click Calculate again.</div>`;
+  }
+}
+
+function calc(){
+  const {v, errs} = read();
+  const msgs = document.getElementById("msgs");
+  msgs.innerHTML = "";
+  if(errs.length){
+    msgs.innerHTML = `<div class="e">Check these inputs (missing, or negative where not allowed): ${errs.join(", ")}</div>`;
+    ["fits","gaugeL","gaugeU"].forEach(id=>document.getElementById(id).innerHTML="");
+    document.getElementById("case2gate").innerHTML = `<div class="msgs"><div class="e">Fix the inputs above first.</div></div>`;
+    document.getElementById("calcCase2").disabled = true;
+    todo(); markCase2Stale(); return;
+  }
+  const VC_B_L = v.D_Pin1 + v.tol_D_Pin1 + v.tol_Perp_Pin1;
+  const VC_C_L = v.D_Pin2 + v.tol_D_Pin2 + v.tol_Pos_Pin2;
+  const VC_H_L = v.D_Hole1234L - v.tol_D_Hole1234L - v.tol_Pos_Hole1234L;
+  const VC_B_U = v.D_Hole1U - v.tol_D_Hole1U - v.tol_Perp_Hole1U;
+  const VC_W_U = v.W_Slot - v.tol_W_Slot - v.tol_Pos_W_Slot;
+  const VC_L_U = v.L_Slot - v.tol_L_Slot - v.tol_Pos_L_Slot;
+  const VC_T_U = v.Mthread + v.tol_Pos_Thole1234;
+
+  const G_B  = (VC_B_U - VC_B_L)/2;
+  const G_CW = (VC_W_U - VC_C_L)/2;
+  const G_CL = (VC_L_U - VC_C_L)/2;
+  // Baseline worst-case gap assuming zero registration shift (same formula the
+  // hand-assembled page uses as its final answer); here it's just the upper
+  // bound the registration-shift search below can only make worse.
+  const C_gap = ((v.D_Hole1234L - v.tol_D_Hole1234L) - (v.D_shank + v.tol_D_shank)
+               - v.tol_Pos_Hole1234L - v.tol_Pos_Thole1234 - v.tol_Coax_bolt)/2;
+  const datumOK = G_B >= 0 && G_CW >= 0 && G_CL >= 0;
+
+  // warnings
+  const w = [];
+  if(v.tol_Perp_Pin2 >= v.tol_Pos_Pin2) w.push("tol_Perp_Pin2 is not smaller than tol_Pos_Pin2, so the refinement has no effect.");
+  if(v.tol_Perp_Slot >= v.tol_Pos_W_Slot) w.push("tol_Perp_Slot is not smaller than tol_Pos_W_Slot, so the refinement has no effect.");
+  if(!datumOK) w.push("At least one datum-feature fit is negative. The parts may not seat on the pins at all, and the shoulder-bolt search below cannot run until all three datum fits are zero or positive.");
+  [VC_B_L,VC_C_L,VC_H_L,VC_B_U,VC_W_U,VC_L_U].forEach((x)=>{ if(x<=0) w.push("A virtual condition is zero or negative — check the tolerances."); });
+  msgs.innerHTML = [...new Set(w)].map(t=>`<div class="w">${t}</div>`).join("");
+
+  const card = (title, val, sub) => {
+    const cls = val >= 0 ? "ok" : "bad";
+    const txt = val >= 0 ? "Minimum gap" : "Maximum interference";
+    return `<div class="fit ${cls}"><div class="t">${title}</div><div class="v">${f4(Math.abs(val))} mm</div><div class="s">${txt} · ${sub}</div></div>`;
+  };
+  document.getElementById("fits").innerHTML =
+    card("Pin 1 in Hole 1U (G_B)", G_B, `VC ${f4(VC_B_U)} vs ${f4(VC_B_L)}`) +
+    card("Pin 2 in Slot, width (G_CW)", G_CW, `VC ${f4(VC_W_U)} vs ${f4(VC_C_L)}`) +
+    card("Pin 2 in Slot, length (G_CL)", G_CL, `VC ${f4(VC_L_U)} vs ${f4(VC_C_L)}`);
+
+  // Case 2 gate: enable/disable the Calculate button for the shoulder-bolt search.
+  const gate = document.getElementById("case2gate");
+  const btn = document.getElementById("calcCase2");
+  if(!datumOK){
+    btn.disabled = true;
+    gate.innerHTML = `<div class="msgs"><div class="e">Fix the datum-feature fits above (all three must be zero or positive) before running the shoulder-bolt search.</div></div>`;
+  } else {
+    btn.disabled = false;
+    gate.innerHTML = "";
+  }
+  window.__case2Geometry = { x_Pin2: v.x_Pin2, G_B, G_CW, G_CL, C_gap,
+    holes: [
+      {x:v.x_Hole1L, y:v.y_Hole1L}, {x:v.x_Hole2L, y:v.y_Hole2L},
+      {x:v.x_Hole3L, y:v.y_Hole3L}, {x:v.x_Hole4L, y:v.y_Hole4L},
+    ] };
+  markCase2Stale();
+
+  const gw = v.gwear;
+  const head = `<tr><th>Element</th><th>Type</th><th>Checks</th><th>Basic location (x, y)</th><th>Nominal (VC)</th><th>Made size min</th><th>Made size max</th><th>Location tol.</th><th>Depth / length ≥</th><th title="Share of the related part tolerance consumed by gauge tolerances and wear">Part tol. used</th></tr>`;
+  const row = (el,type,chk,loc,nom,r,ltol,dl,partTol) => {
+    const share = r.used/partTol;
+    const cls = share >= 1 ? "over" : (share > 0.25 ? "hi" : "");
+    return `<tr><td>${el}</td><td>${type}</td><td>${chk}</td><td class="n">${loc}</td><td class="n">${f4(nom)}</td><td class="n">${f4(r.min)}</td><td class="n">${f4(r.max)}</td><td class="n">${ltol}</td><td class="n">${f4(dl)}</td><td class="n ${cls}">${pct(share)}</td></tr>`;
+  };
+  const xy = (x,y)=>`${f4(x)}, ${f4(y)}`;
+  const gl = [];
+  gl.push(row("GL_B","Hole","Datum B (Pin 1)",xy(0,0),VC_B_L,holeEl(VC_B_L,v.gtol_Perp_GL_B,v.gtol_Size_GL_B,gw),"⟂ "+f4(v.gtol_Perp_GL_B),v.H_Pin_L,v.tol_Perp_Pin1));
+  gl.push(row("GL_C","Hole","Datum C, position of Pin 2",xy(v.x_Pin2,0),VC_C_L,holeEl(VC_C_L,v.gtol_Pos_GL_C,v.gtol_Size_GL_C,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_C),v.H_Pin_L,v.tol_Pos_Pin2));
+  for(let i=1;i<=4;i++) gl.push(row("GL_"+i,"Pin",`Position of Hole ${i}L`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_H_L,pinEl(VC_H_L,v.gtol_Pos_GL_H,v.gtol_Size_GL_H,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_H),v.H_Proj_Thole,v.tol_Pos_Hole1234L));
+  document.getElementById("gaugeL").innerHTML = `<table>${head}${gl.join("")}</table>`;
+
+  const gu = [];
+  gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.H_BC_U,v.tol_Perp_Hole1U));
+  gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_W_Slot));
+  gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_L_Slot));
+  for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.H_Proj_Thole,v.tol_Pos_Thole1234));
+  const sp = {min:v.Mthread, max:v.Mthread+v.gtol_Size_SetPin};
+  gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.H_Proj_Thole)}</td><td class="n">—</td></tr>`);
+  document.getElementById("gaugeU").innerHTML = `<table>${head}${gu.join("")}</table><p class="note">“Part tol. used” is the share of the related part position or perpendicularity tolerance consumed by the gauge’s own tolerances and wear. Above 25 % (amber) the gauge rejects a noticeable share of good parts at the limit; at 100 % or more (red) even a perfect part at MMC may be rejected.</p>`;
+  todo();
+}
+
+function todo(){
+  document.getElementById("todo").innerHTML = SUITS.map(([id,desc])=>{
+    const val = document.getElementById(id).value.trim();
+    return `<li><code>${id}</code> — ${desc}${val ? `: <strong>${val.replace(/</g,"&lt;")}</strong><span class="pill ok">set</span>` : `<span class="pill open">to define</span>`}</li>`;
+  }).join("");
+}
+
+async function onCalculateCase2(){
+  const geo = window.__case2Geometry;
+  if(!geo) return;
+  const btn = document.getElementById("calcCase2");
+  const progress = document.getElementById("case2progress");
+  const msgs = document.getElementById("case2msgs");
+  msgs.innerHTML = "";
+  btn.disabled = true;
+  progress.style.display = "flex";
+  try{
+    const payload = { x_Pin2: geo.x_Pin2, G_B: geo.G_B, G_CW: geo.G_CW, G_CL: geo.G_CL, holes: geo.holes };
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload),
+    });
+    let data;
+    try{ data = await res.json(); }
+    catch{ msgs.innerHTML = `<div class="e">Calculation server returned an unreadable response.</div>`; return; }
+    if(!data.ok){
+      msgs.innerHTML = (data.errors && data.errors.length ? data.errors : ["Unknown error."]).map(e=>`<div class="e">${e}</div>`).join("");
+      return;
+    }
+    renderCase2Results(data, geo);
+    case2State = "shown";
+    document.getElementById("case2results").classList.remove("stale");
+  } catch(err){
+    msgs.innerHTML = `<div class="e">Calculation server unavailable: ${err.message}</div>`;
+  } finally {
+    progress.style.display = "none";
+    btn.disabled = false;
+  }
+}
+
+function renderCase2Results(data, geo){
+  const rows = data.results.map(r => ({
+    ...r,
+    gap: geo.C_gap - r.shift_max,
+  }));
+  let critIdx = 0;
+  rows.forEach((r,i)=>{ if(r.gap < rows[critIdx].gap) critIdx = i; });
+
+  const head = `<tr><th>Hole</th><th>Basic location (x, y)</th><th>Max. registration shift</th><th>Worst-case gap</th></tr>`;
+  const body = rows.map((r,i)=>{
+    const cls = r.gap >= 0 ? "" : "over";
+    const rowCls = i === critIdx ? "crit" : "";
+    return `<tr class="${rowCls}"><td>Hole ${r.index} (Thole ${r.index})</td><td class="n">${f4(r.x)}, ${f4(r.y)}</td><td class="n">${f6(r.shift_max)}</td><td class="n ${cls}">${r.gap>=0?"":"−"}${f4(Math.abs(r.gap))} mm ${i===critIdx?"&larr; critical":""}</td></tr>`;
+  }).join("");
+  document.getElementById("case2results").innerHTML = `<table>${head}${body}</table>`;
+
+  const meta = data.meta || {};
+  const bestCfg = data.results[critIdx] && data.results[critIdx].config_at_max;
+  const metaLine = `<p class="note">Search grid: ${meta.N_THETA||"—"} rotation steps × ${meta.N_LIN||"—"} × ${meta.N_LIN||"—"} translation steps (rotation window ±${(meta.theta_window_deg||0).toFixed(4)}°), ${((meta.combinations_feasible||0)).toLocaleString()} feasible combinations evaluated in ${meta.elapsed_ms||"—"} ms.${bestCfg ? ` Critical-hole worst case occurred at dx=${f6(bestCfg.dx)}, dy=${f6(bestCfg.dy)}, &theta;=${f6(bestCfg.theta)} rad.` : ""}</p>`;
+  document.getElementById("case2results").insertAdjacentHTML("beforeend", metaLine);
+}
+
+build();
+document.addEventListener("input", calc);
+document.getElementById("reset").addEventListener("click", ()=>{ build(); calc(); });
+document.getElementById("print").addEventListener("click", ()=>window.print());
+document.getElementById("calcCase2").addEventListener("click", onCalculateCase2);
+calc();
+</script>
+</body>
+</html>
