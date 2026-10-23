@@ -424,10 +424,10 @@ const GROUPS = [
   ["D_Hole1234L","Nominal diameter",10.5],
   ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
   ["tol_Pos_Hole1234L","Position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
-  ["x_Hole1L","Hole 1L basic x",20],["y_Hole1L","Hole 1L basic y",40],
-  ["x_Hole2L","Hole 2L basic x",100],["y_Hole2L","Hole 2L basic y",40],
-  ["x_Hole3L","Hole 3L basic x",20],["y_Hole3L","Hole 3L basic y",-40],
-  ["x_Hole4L","Hole 4L basic x",100],["y_Hole4L","Hole 4L basic y",-40]]},
+  ["x_Hole1L","",20],["y_Hole1L","",40],
+  ["x_Hole2L","",-100],["y_Hole2L","",40],
+  ["x_Hole3L","",-20],["y_Hole3L","",-40],
+  ["x_Hole4L","",100],["y_Hole4L","",-40]]},
  {t:"Part U — datum features (Hole 1U, Slot)", target:"formPartU", f:[
   ["D_Hole1U","Hole 1U nominal diameter",8.04],
   ["tol_D_Hole1U","Hole 1U diameter tolerance ±",0.01],
@@ -479,6 +479,10 @@ const SUITS = [
 ];
 const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","H_BC_U","Mthread","H_Proj_Thole","D_shank"]);
 const isCoord = id => /^[xy]_Hole\dL$/.test(id);
+// Fixed sign convention for the Hole 1L-4L basic locations (never both signs — a
+// basic dimension's magnitude is always shown positive on the drawing; the sign
+// here only fixes which side of the origin each hole basic location is on).
+const COORD_SIGN = { x_Hole1L:"+", y_Hole1L:"+", x_Hole2L:"-", y_Hole2L:"+", x_Hole3L:"-", y_Hole3L:"-", x_Hole4L:"+", y_Hole4L:"-" };
 
 function build(){
   const targets = new Set(GROUPS.map(g=>g.target));
@@ -491,7 +495,7 @@ function build(){
     d.innerHTML = `<summary>${g.t}</summary>`;
     g.f.forEach(([id,desc,def])=>{
       const row = document.createElement("div"); row.className="field";
-      row.innerHTML = `<label for="${id}"><code>${id}</code><span class="d">${desc}</span></label><input id="${id}" type="number" step="any" inputmode="decimal" value="${def}">`;
+      row.innerHTML = `<label for="${id}"><code>${id}</code>${desc ? `<span class="d">${desc}</span>` : ""}</label><input id="${id}" type="number" step="any" inputmode="decimal" value="${def}">`;
       d.appendChild(row);
     });
     container.appendChild(d);
@@ -519,6 +523,8 @@ function read(){
     let bad = !isFinite(n);
     if(!bad && !isCoord(id) && !NON_TOL.has(id) && n < 0) bad = true;
     if(!bad && NON_TOL.has(id) && n <= 0) bad = true;
+    if(!bad && COORD_SIGN[id] === "+" && n < 0) bad = true;
+    if(!bad && COORD_SIGN[id] === "-" && n > 0) bad = true;
     el.classList.toggle("err", bad);
     if(bad) errs.push(id); v[id] = n;
   }));
@@ -554,15 +560,18 @@ function updatePartLDrawing(v){
   setLbl("lbl-HPinL", f4(v.H_Pin_L));
   setLbl("lbl-DHole1234L", `4X Ø${f4(v.D_Hole1234L)} ±${f4(v.tol_D_Hole1234L)}`);
   setLbl("lbl-PosHole1234L", `Ø${f4(v.tol_Pos_Hole1234L)}`);
-  setLbl("lbl-xPin2", f4(v.x_Pin2));
-  setLbl("lbl-xHole1L", f4(v.x_Hole1L));
-  setLbl("lbl-yHole1L", f4(v.y_Hole1L));
-  setLbl("lbl-xHole2L", f4(v.x_Hole2L));
-  setLbl("lbl-yHole2L", f4(v.y_Hole2L));
-  setLbl("lbl-xHole3L", f4(v.x_Hole3L));
-  setLbl("lbl-yHole3L", f4(v.y_Hole3L));
-  setLbl("lbl-xHole4L", f4(v.x_Hole4L));
-  setLbl("lbl-yHole4L", f4(v.y_Hole4L));
+  // Basic dimensions are always shown as a positive magnitude on the drawing —
+  // the sign (fixed by COORD_SIGN above) only decides which side of the origin
+  // the leader line is drawn on, never the printed number.
+  setLbl("lbl-xPin2", f4(Math.abs(v.x_Pin2)));
+  setLbl("lbl-xHole1L", f4(Math.abs(v.x_Hole1L)));
+  setLbl("lbl-yHole1L", f4(Math.abs(v.y_Hole1L)));
+  setLbl("lbl-xHole2L", f4(Math.abs(v.x_Hole2L)));
+  setLbl("lbl-yHole2L", f4(Math.abs(v.y_Hole2L)));
+  setLbl("lbl-xHole3L", f4(Math.abs(v.x_Hole3L)));
+  setLbl("lbl-yHole3L", f4(Math.abs(v.y_Hole3L)));
+  setLbl("lbl-xHole4L", f4(Math.abs(v.x_Hole4L)));
+  setLbl("lbl-yHole4L", f4(Math.abs(v.y_Hole4L)));
 }
 
 function calc(){
