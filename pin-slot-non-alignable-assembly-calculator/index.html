@@ -233,11 +233,11 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
 <line x1="445.1" y1="350.8" x2="419.2" y2="341.0" stroke="#000" stroke-width="1"/>
 <line x1="445.1" y1="322.2" x2="419.2" y2="312.4" stroke="#000" stroke-width="1"/>
 <line x1="423.7" y1="342.7" x2="423.7" y2="314.1" stroke="#000" stroke-width="1" marker-start="url(#pl-da)" marker-end="url(#pl-da)"/>
-<g transform="matrix(0.93635,0.35107,0,1,359.62,303.65)"><text id="lbl-HPinL" x="0" y="0" font-size="14" fill="#000" textLength="62" lengthAdjust="spacingAndGlyphs">H_Pin_L</text></g>
+<g transform="matrix(0.93635,0.35107,0,1,359.62,303.65)"><text id="lbl-HPinL" x="0" y="0" font-size="14" fill="#000" textLength="62" lengthAdjust="spacingAndGlyphs">H_Pin_L__for_gauge</text></g>
 <line x1="186.3" y1="374.3" x2="147.9" y2="359.9" stroke="#000" stroke-width="1"/>
 <line x1="186.3" y1="422.7" x2="147.9" y2="408.3" stroke="#000" stroke-width="1"/>
 <line x1="151.7" y1="361.3" x2="151.7" y2="409.7" stroke="#000" stroke-width="1" marker-start="url(#pl-da)" marker-end="url(#pl-da)"/>
-<g transform="matrix(0.93635,0.35107,0,1,81.7,377.5)"><text id="lbl-tPartL" x="0" y="0" font-size="14" fill="#000" textLength="55" lengthAdjust="spacingAndGlyphs">t_Part_L</text></g>
+<g transform="matrix(0.93635,0.35107,0,1,81.7,377.5)"><text id="lbl-tPartL" x="0" y="0" font-size="14" fill="#000" textLength="55" lengthAdjust="spacingAndGlyphs">t_Part_L__for_gauge</text></g>
 <line x1="479.0" y1="334.9" x2="571.7" y2="369.6" stroke="#000" stroke-width="1"/>
 <g transform="matrix(0.93635,0.35107,0,1,554.87,649.19)" stroke="#000" stroke-width="1.6" fill="none" stroke-linejoin="round">
 <polygon points="14,39 32,39 23,53" fill="#000"/>
@@ -423,8 +423,8 @@ const GROUPS = [
   ["tol_Pos_Pin2","Pin 2 position to A|B(M) at MMC (Ø zone)",0.02],
   ["tol_Perp_Pin2","Pin 2 perpendicularity refinement to A at MMC (Ø zone)",0.01],
   ["x_Pin2","Basic distance Pin 1 → Pin 2",40],
-  ["H_Pin_L","Max. height of Pin 1 and Pin 2 above datum A",10],
-  ["t_Part_L","Thickness of Part L at Hole 1L–4L",20]]},
+  ["H_Pin_L__for_gauge","Max. height of Pin 1 and Pin 2 above datum A",10],
+  ["t_Part_L__for_gauge","Thickness of Part L at Hole 1L–4L",20]]},
  {t:"Part L — Hole 1L–4L", target:"formPartL", f:[
   ["D_Hole1234L","Nominal diameter",10.5],
   ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
@@ -481,7 +481,7 @@ const SUITS = [
   ["suit_Flat_GL","Flatness of the gauge face, Gauge L"],
   ["suit_Flat_GU","Flatness of the gauge face, Gauge U"]
 ];
-const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","t_Part_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","t_Part_U","Mthread","D_shank"]);
+const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L__for_gauge","t_Part_L__for_gauge","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","t_Part_U","Mthread","D_shank"]);
 const isCoord = id => /^[xy]_Hole\dL$/.test(id);
 // Fixed sign convention for the Hole 1L-4L basic locations (never both signs — a
 // basic dimension's magnitude is always shown positive on the drawing; the sign
@@ -566,8 +566,8 @@ function updatePartLDrawing(v){
   setLbl("lbl-PerpPin1", `Ø${f3(v.tol_Perp_Pin1)}`);
   setLbl("lbl-PosPin2", `Ø${f3(v.tol_Pos_Pin2)}`);
   setLbl("lbl-PerpPin2", `Ø${f3(v.tol_Perp_Pin2)}`);
-  setLbl("lbl-HPinL", f3(v.H_Pin_L));
-  setLbl("lbl-tPartL", f3(v.t_Part_L));
+  setLbl("lbl-HPinL", f3(v.H_Pin_L__for_gauge));
+  setLbl("lbl-tPartL", f3(v.t_Part_L__for_gauge));
   setLbl("lbl-DHole1234L", `4X Ø${f3(v.D_Hole1234L)} ±${f3(v.tol_D_Hole1234L)}`);
   setLbl("lbl-PosHole1234L", `Ø${f3(v.tol_Pos_Hole1234L)}`);
   // Basic dimensions are always shown as a positive magnitude on the drawing —
@@ -658,18 +658,18 @@ function calc(){
   };
   const xy = (x,y)=>`${f4(x)}, ${f4(y)}`;
   const gl = [];
-  gl.push(row("GL_B","Hole","Datum B (Pin 1)",xy(0,0),VC_B_L,holeEl(VC_B_L,v.gtol_Perp_GL_B,v.gtol_Size_GL_B,gw),"⟂ "+f4(v.gtol_Perp_GL_B),v.H_Pin_L,v.tol_Perp_Pin1));
-  gl.push(row("GL_C","Hole","Datum C, position of Pin 2",xy(v.x_Pin2,0),VC_C_L,holeEl(VC_C_L,v.gtol_Pos_GL_C,v.gtol_Size_GL_C,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_C),v.H_Pin_L,v.tol_Pos_Pin2));
-  for(let i=1;i<=4;i++) gl.push(row("GL_"+i,"Pin",`Position of Hole ${i}L`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_H_L,pinEl(VC_H_L,v.gtol_Pos_GL_H,v.gtol_Size_GL_H,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_H),v.t_Part_L,v.tol_Pos_Hole1234L));
+  gl.push(row("GL_B","Hole","Datum B (Pin 1)",xy(0,0),VC_B_L,holeEl(VC_B_L,v.gtol_Perp_GL_B,v.gtol_Size_GL_B,gw),"⟂ "+f4(v.gtol_Perp_GL_B),v.H_Pin_L__for_gauge,v.tol_Perp_Pin1));
+  gl.push(row("GL_C","Hole","Datum C, position of Pin 2",xy(v.x_Pin2,0),VC_C_L,holeEl(VC_C_L,v.gtol_Pos_GL_C,v.gtol_Size_GL_C,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_C),v.H_Pin_L__for_gauge,v.tol_Pos_Pin2));
+  for(let i=1;i<=4;i++) gl.push(row("GL_"+i,"Pin",`Position of Hole ${i}L`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_H_L,pinEl(VC_H_L,v.gtol_Pos_GL_H,v.gtol_Size_GL_H,gw),"⌖ Ø"+f4(v.gtol_Pos_GL_H),v.t_Part_L__for_gauge,v.tol_Pos_Hole1234L));
   document.getElementById("gaugeL").innerHTML = `<table>${head}${gl.join("")}</table>`;
 
   const gu = [];
   gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.t_Part_U,v.tol_Perp_Hole1U));
   gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U,v.tol_Pos_W_Slot));
   gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U,v.tol_Pos_L_Slot));
-  for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.t_Part_L,v.tol_Pos_Thole1234));
+  for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.t_Part_L__for_gauge,v.tol_Pos_Thole1234));
   const sp = {min:v.Mthread, max:v.Mthread+v.gtol_Size_SetPin};
-  gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.t_Part_L)}</td><td class="n">—</td></tr>`);
+  gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.t_Part_L__for_gauge)}</td><td class="n">—</td></tr>`);
   document.getElementById("gaugeU").innerHTML = `<table>${head}${gu.join("")}</table><p class="note">“Part tol. used” is the share of the related part position or perpendicularity tolerance consumed by the gauge’s own tolerances and wear. Above 25 % (amber) the gauge rejects a noticeable share of good parts at the limit; at 100 % or more (red) even a perfect part at MMC may be rejected.</p>`;
   todo();
 }
