@@ -444,7 +444,7 @@ const GROUPS = [
   ["L_Slot","Slot nominal overall length (x)",12],
   ["tol_L_Slot","Slot length tolerance ±",0.1],
   ["tol_Pos_L_Slot","Slot length position to A|B(M) at MMC",0.2],
-  ["H_BC_U","Max. depth of Hole 1U and Slot",15]]},
+  ["t_Part_U","Max. depth of Hole 1U and Slot",15]]},
  {t:"Part U — Thole 1–4", target:"formPartU", f:[
   ["Mthread","Thread size (8 for M8)",8],
   ["tol_Pos_Thole1234","Projected position to A|B(M)|C(M) at MMC (Ø zone)",0.15]]},
@@ -481,7 +481,7 @@ const SUITS = [
   ["suit_Flat_GL","Flatness of the gauge face, Gauge L"],
   ["suit_Flat_GU","Flatness of the gauge face, Gauge U"]
 ];
-const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","t_Part_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","H_BC_U","Mthread","D_shank"]);
+const NON_TOL = new Set(["D_Pin1","D_Pin2","x_Pin2","H_Pin_L","t_Part_L","D_Hole1234L","D_Hole1U","W_Slot","L_Slot","t_Part_U","Mthread","D_shank"]);
 const isCoord = id => /^[xy]_Hole\dL$/.test(id);
 // Fixed sign convention for the Hole 1L-4L basic locations (never both signs — a
 // basic dimension's magnitude is always shown positive on the drawing; the sign
@@ -664,9 +664,9 @@ function calc(){
   document.getElementById("gaugeL").innerHTML = `<table>${head}${gl.join("")}</table>`;
 
   const gu = [];
-  gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.H_BC_U,v.tol_Perp_Hole1U));
-  gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_W_Slot));
-  gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.H_BC_U,v.tol_Pos_L_Slot));
+  gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.t_Part_U,v.tol_Perp_Hole1U));
+  gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U,v.tol_Pos_W_Slot));
+  gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U,v.tol_Pos_L_Slot));
   for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.t_Part_L,v.tol_Pos_Thole1234));
   const sp = {min:v.Mthread, max:v.Mthread+v.gtol_Size_SetPin};
   gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.t_Part_L)}</td><td class="n">—</td></tr>`);
