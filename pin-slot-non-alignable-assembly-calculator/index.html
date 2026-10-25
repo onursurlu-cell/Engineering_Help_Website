@@ -315,15 +315,12 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
     </div>
     <div class="drawing-frame" aria-label="Part L minimum free circle, datums A, B, C, no MMB">
       <div class="cap">Minimum free circle — datums A, B, C</div>
-      <div class="cap-desc">Hole 1L–4L, position to A|B(M)|C(M), datums B and C taken as absolute (no MMB bonus). Schematic, view looking at the Datum A face, Pin 1 left / Pin 2 right — not to scale, and the red circle is drawn smaller than its real proportion so it stays visible. Same value for all 4 holes — labeled once, at Hole #1.</div>
-      <svg id="svgMinFreeL1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 320" font-family="Arial, Helvetica, sans-serif">
+      <div class="cap-desc">Schematic only — not to scale</div>
+      <svg id="svgMinFreeL1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 300" font-family="Arial, Helvetica, sans-serif">
+<defs>
+<marker id="mfc-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
+</defs>
 <rect x="40" y="40" width="300" height="220" fill="#fff" stroke="#000" stroke-width="1.5"/>
-<g stroke="#000" stroke-width="1.3" fill="none">
-<polygon points="40,260 55,260 47.5,272" fill="#000"/>
-<line x1="47.5" y1="272" x2="47.5" y2="286"/>
-<rect x="32.5" y="286" width="30" height="24" fill="#fff"/>
-<text x="47.5" y="303" font-size="15" fill="#000" stroke="none" text-anchor="middle">A</text>
-</g>
 <circle cx="140" cy="150" r="11" fill="#fff" stroke="#000" stroke-width="1.3"/>
 <circle cx="140" cy="150" r="2" fill="#000"/>
 <text x="140" y="178" font-size="13" fill="#000" font-weight="bold" text-anchor="middle">Pin 1</text>
@@ -338,14 +335,14 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
 <text x="80" y="62" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#2</text>
 <circle cx="80" cy="210" r="20" fill="none" stroke="#000" stroke-width="1.4"/>
 <circle cx="80" cy="210" r="12" fill="none" stroke="#c00" stroke-width="1.4"/>
-<text x="80" y="238" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#3</text>
+<text x="80" y="250" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#3</text>
 <circle cx="300" cy="210" r="20" fill="none" stroke="#000" stroke-width="1.4"/>
 <circle cx="300" cy="210" r="12" fill="none" stroke="#c00" stroke-width="1.4"/>
-<text x="300" y="238" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#4</text>
-<line x1="314.1" y1="75.9" x2="380" y2="52" stroke="#000" stroke-width="1"/>
-<text id="lbl-mfcNomDia" x="384" y="56" font-size="13" fill="#000" font-weight="bold">4X ØD_Hole1234L ±tol_D_Hole1234L</text>
-<line x1="314.1" y1="104.1" x2="380" y2="128" stroke="#c00" stroke-width="1"/>
-<text id="lbl-mfcFreeDia" x="384" y="132" font-size="13" fill="#c00" font-weight="bold">Ø (4X)</text>
+<text x="300" y="250" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#4</text>
+<line x1="380" y1="52" x2="300" y2="90" stroke="#000" stroke-width="1" marker-end="url(#mfc-ar)"/>
+<text id="lbl-mfcNomDia" x="384" y="56" font-size="13" fill="#000" font-weight="bold">ØD_Hole1234L ±tol_D_Hole1234L (4x)</text>
+<line x1="380" y1="128" x2="300" y2="90" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar)"/>
+<text id="lbl-mfcFreeDia" x="384" y="132" font-size="13" fill="#c00" font-weight="bold">Ø (4x)</text>
 </svg>
     </div>
     <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced. (to be done)</div></div>
@@ -632,8 +629,8 @@ function updateMinFreeCircleL(v, VC_H_L){
   // Schematic only — fixed geometry, same convention as the isometric
   // drawing above: only the two text labels update with the inputs.
   const setLbl = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
-  setLbl("lbl-mfcNomDia", `4X Ø${f3(v.D_Hole1234L)} ±${f3(v.tol_D_Hole1234L)}`);
-  setLbl("lbl-mfcFreeDia", `Ø${f3(VC_H_L)} (4X)`);
+  setLbl("lbl-mfcNomDia", `Ø${f3(v.D_Hole1234L)} ±${f3(v.tol_D_Hole1234L)} (4x)`);
+  setLbl("lbl-mfcFreeDia", `Ø${f3(VC_H_L)} (4x)`);
 }
 
 function calc(){
