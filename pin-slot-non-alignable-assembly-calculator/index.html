@@ -82,6 +82,8 @@ footer a:hover{color:var(--accent)}
 .drawing-frame{border:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 10px;background:#fff}
 .drawing-frame:last-child{margin-bottom:0}
 .drawing-frame svg{display:block;width:100%;height:auto}
+.drawing-frame .cap{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);font-weight:600;margin-bottom:4px}
+.drawing-frame .cap-desc{font-size:.85rem;color:var(--muted);margin-bottom:10px}
 .theory p{margin:0 0 10px}
 .theory p:last-child{margin-bottom:0}
 .theory code{font-family:var(--mono);color:var(--accent);font-size:.82em}
@@ -311,7 +313,11 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
 <g font-size="14" fill="#000"><text x="40" y="690" font-weight="bold">Schematic only — not to scale. Geometry is fixed; only the</text><text x="40" y="712" font-weight="bold">Ø/± and position labels above update with your inputs.</text><text x="40" y="734">Only "suit_Flat_A_L" is shown on face of drawing.</text><text x="40" y="756">Following suit GD&amp;Ts are not shown on face of drawing for clarity:</text><text x="40" y="778">"suit_Bas_Edges_L" and "suit_Prof_Edges_L"</text></g>
 </svg>
     </div>
-    <div class="drawing-placeholder"><div><b>Minimum free circle — datums A, B, C</b>Hole 1L–4L: the circle left free once position to A|B(M)|C(M) is applied. (to be done)</div></div>
+    <div class="drawing-frame" aria-label="Part L minimum free circle, datums A, B, C, no MMB">
+      <div class="cap">Minimum free circle — datums A, B, C</div>
+      <div class="cap-desc">Hole 1L–4L, position to A|B(M)|C(M), datums B and C taken as absolute (no MMB bonus). Same value for all 4 holes — labeled once, at Hole #1.</div>
+      <svg id="svgMinFreeL1" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"></svg>
+    </div>
     <div class="drawing-placeholder"><div><b>Minimum free circle — A, B, C and MMB</b>Same circle, reduced once the MMB bonus from datums B and C is introduced. (to be done)</div></div>
   </div>
 
@@ -592,6 +598,58 @@ function updatePartLDrawing(v){
   setLbl("lbl-yHole4L", f3(Math.abs(v.y_Hole4L)));
 }
 
+function updateMinFreeCircleL(v, VC_H_L){
+  const svg = document.getElementById("svgMinFreeL1");
+  if(!svg) return;
+  const holes = [1,2,3,4].map(i => ({ n:i, x:v["x_Hole"+i+"L"], y:v["y_Hole"+i+"L"] }));
+  const rOuter = v.D_Hole1234L/2;
+  const rInner = VC_H_L/2;
+  const rMax = Math.max(rOuter, rInner);
+  const xs = holes.map(h=>h.x), ys = holes.map(h=>h.y);
+  const holeMinX = Math.min(...xs), holeMaxX = Math.max(...xs);
+  const holeMinY = Math.min(...ys), holeMaxY = Math.max(...ys);
+  const margin = rMax + 14;
+
+  // Font/stroke scale comes from the hole pattern's own extent only, so the
+  // extra width reserved below for the Ø label doesn't feed back into how
+  // big that same label's text renders.
+  const coreW = (holeMaxX - holeMinX) + 2*margin;
+  const coreH = (holeMaxY - holeMinY) + 2*margin + 10; // +10 for the "#n" tags above each hole
+  const scale = ((coreW + coreH)/2)/300;
+  const sw = 1.1*scale, swThin = 0.8*scale, fsTag = 11*scale, fsLbl = 13*scale;
+
+  // Reserve enough width at the right for "Ø##.### (4X)" at this font size.
+  const labelRoom = 13*0.62*fsLbl + rOuter + 16*scale;
+
+  const minX = holeMinX - margin;
+  const maxX = holeMaxX + margin + labelRoom;
+  const minY = holeMinY - margin;
+  const maxY = holeMaxY + margin + 10;
+  const w = maxX - minX, h = maxY - minY;
+  svg.setAttribute("viewBox", `${minX} ${-maxY} ${w} ${h}`);
+
+  let s = "";
+  s += `<line x1="${minX}" y1="0" x2="${maxX}" y2="0" stroke="#ccc" stroke-width="${swThin}"/>`;
+  s += `<line x1="0" y1="${-maxY}" x2="0" y2="${-minY}" stroke="#ccc" stroke-width="${swThin}"/>`;
+
+  holes.forEach(ho => {
+    const cy = -ho.y;
+    s += `<circle cx="${ho.x}" cy="${cy}" r="${rOuter}" fill="none" stroke="#000" stroke-width="${sw}"/>`;
+    s += `<circle cx="${ho.x}" cy="${cy}" r="${rInner}" fill="none" stroke="#c00" stroke-width="${sw}"/>`;
+    s += `<text x="${ho.x}" y="${cy - rOuter - 4*scale}" font-size="${fsTag}" fill="#000" font-weight="bold" text-anchor="middle">#${ho.n}</text>`;
+  });
+
+  const h1 = holes[0];
+  const leaderStartX = h1.x + rOuter*0.7071;
+  const leaderStartY = -h1.y - rOuter*0.7071;
+  const leaderEndX = h1.x + rOuter + labelRoom*0.3;
+  const leaderEndY = -h1.y - rOuter*0.5;
+  s += `<line x1="${leaderStartX}" y1="${leaderStartY}" x2="${leaderEndX}" y2="${leaderEndY}" stroke="#c00" stroke-width="${swThin}"/>`;
+  s += `<text x="${leaderEndX + 4*scale}" y="${leaderEndY + 4*scale}" font-size="${fsLbl}" fill="#c00" font-weight="bold">Ø${f3(VC_H_L)} (4X)</text>`;
+
+  svg.innerHTML = s;
+}
+
 function calc(){
   const {v, errs} = read();
   updatePartLDrawing(v);
@@ -607,6 +665,7 @@ function calc(){
   const VC_B_L = v.D_Pin1 + v.tol_D_Pin1 + v.tol_Perp_Pin1;
   const VC_C_L = v.D_Pin2 + v.tol_D_Pin2 + v.tol_Pos_Pin2;
   const VC_H_L = v.D_Hole1234L - v.tol_D_Hole1234L - v.tol_Pos_Hole1234L;
+  updateMinFreeCircleL(v, VC_H_L);
   const VC_B_U = v.D_Hole1U - v.tol_D_Hole1U - v.tol_Perp_Hole1U;
   const VC_W_U = v.W_Slot - v.tol_W_Slot - v.tol_Pos_W_Slot;
   const VC_L_U = v.L_Slot - v.tol_L_Slot - v.tol_Pos_L_Slot;
