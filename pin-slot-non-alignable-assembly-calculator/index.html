@@ -659,10 +659,10 @@ const GROUPS = [
   ["D_Hole1234L","Nominal diameter",10.5],
   ["tol_D_Hole1234L","Diameter tolerance ±",0.1],
   ["tol_Pos_Hole1234L","Position to A|B(M)|C(M) at MMC (Ø zone)",0.15],
-  ["x_Hole1L","x coordinate of the Hole1L ( ≥ 0)",120],["y_Hole1L","y coordinate of the Hole1L ( ≥ 0)",40],
-  ["x_Hole2L","x coordinate of the Hole2L ( ≤ 0)",-100],["y_Hole2L","y coordinate of the Hole2L ( ≥ 0)",40],
-  ["x_Hole3L","x coordinate of the Hole3L ( ≤ 0)",-100],["y_Hole3L","y coordinate of the Hole3L ( ≤ 0)",-40],
-  ["x_Hole4L","x coordinate of the Hole4L ( ≥ 0)",120],["y_Hole4L","y coordinate of the Hole4L ( ≤ 0)",-40]]},
+  ["x_Hole1L","x coordinate of the Hole1L ( ≥ 0)",120,"value valid for the corresponding threaded hole of the Part U"],["y_Hole1L","y coordinate of the Hole1L ( ≥ 0)",40,"value valid for the corresponding threaded hole of the Part U"],
+  ["x_Hole2L","x coordinate of the Hole2L ( ≤ 0)",-100,"value valid for the corresponding threaded hole of the Part U"],["y_Hole2L","y coordinate of the Hole2L ( ≥ 0)",40,"value valid for the corresponding threaded hole of the Part U"],
+  ["x_Hole3L","x coordinate of the Hole3L ( ≤ 0)",-100,"value valid for the corresponding threaded hole of the Part U"],["y_Hole3L","y coordinate of the Hole3L ( ≤ 0)",-40,"value valid for the corresponding threaded hole of the Part U"],
+  ["x_Hole4L","x coordinate of the Hole4L ( ≥ 0)",120,"value valid for the corresponding threaded hole of the Part U"],["y_Hole4L","y coordinate of the Hole4L ( ≤ 0)",-40,"value valid for the corresponding threaded hole of the Part U"]]},
  {t:"Part U — datum features (Hole 1U, Slot)", target:"formPartU", f:[
   ["D_Hole1U","Hole 1U nominal diameter",8.04],
   ["tol_D_Hole1U","Hole 1U diameter tolerance ±",0.01],
@@ -727,9 +727,9 @@ function build(){
     if(!container) return;
     const d = document.createElement("details"); d.open = true;
     d.innerHTML = `<summary>${g.t}</summary>`;
-    g.f.forEach(([id,desc,def])=>{
+    g.f.forEach(([id,desc,def,note])=>{
       const row = document.createElement("div"); row.className="field";
-      row.innerHTML = `<label for="${id}"><code>${id}</code>${desc ? `<span class="d">${desc}</span>` : ""}</label><input id="${id}" type="number" step="0.001" inputmode="decimal" value="${def}">`;
+      row.innerHTML = `<label for="${id}"><code>${id}</code>${desc ? `<span class="d">${desc}${note ? `<br>${note}` : ""}</span>` : ""}</label><input id="${id}" type="number" step="0.001" inputmode="decimal" value="${def}">`;
       d.appendChild(row);
     });
     container.appendChild(d);
