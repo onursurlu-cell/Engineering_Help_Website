@@ -149,7 +149,7 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
     <div id="formPartL"></div>
   </div>
   <div class="card" aria-label="Part L drawings">
-    <h2>Part L — drawings</h2>
+    <h2>Part L — drawings <button type="button" id="togglePartLNames" style="margin-left:10px;font-size:.75rem;padding:4px 10px;vertical-align:middle">Show parameter names</button></h2>
     <div class="drawing-frame" aria-label="Part L isometric drawing">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 820" font-family="Arial, Helvetica, sans-serif">
 <defs>
@@ -789,8 +789,30 @@ function markCase2Stale(){
   }
 }
 
+let showPartLParamNames = false;
 function updatePartLDrawing(v){
   const setLbl = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
+  if(showPartLParamNames){
+    setLbl("lbl-Dpin1", "ØD_Pin1 ±tol_D_Pin1");
+    setLbl("lbl-Dpin2", "ØD_Pin2 ±tol_D_Pin2");
+    setLbl("lbl-PerpPin1", "Øtol_Perp_Pin1");
+    setLbl("lbl-PosPin2", "Øtol_Pos_Pin2");
+    setLbl("lbl-PerpPin2", "Øtol_Perp_Pin2");
+    setLbl("lbl-HPinL", "H_Pin_L__for_gauge");
+    setLbl("lbl-tPartL", "t_Part_L__for_gauge");
+    setLbl("lbl-DHole1234L", "4X ØD_Hole1234L ±tol_D_Hole1234L");
+    setLbl("lbl-PosHole1234L", "Øtol_Pos_Hole1234L");
+    setLbl("lbl-xPin2", "x_Pin2");
+    setLbl("lbl-xHole1L", "x_Hole1L");
+    setLbl("lbl-yHole1L", "y_Hole1L");
+    setLbl("lbl-xHole2L", "x_Hole2L");
+    setLbl("lbl-yHole2L", "y_Hole2L");
+    setLbl("lbl-xHole3L", "x_Hole3L");
+    setLbl("lbl-yHole3L", "y_Hole3L");
+    setLbl("lbl-xHole4L", "x_Hole4L");
+    setLbl("lbl-yHole4L", "y_Hole4L");
+    return;
+  }
   setLbl("lbl-Dpin1", `Ø${f3(v.D_Pin1)} ±${f3(v.tol_D_Pin1)}`);
   setLbl("lbl-Dpin2", `Ø${f3(v.D_Pin2)} ±${f3(v.tol_D_Pin2)}`);
   setLbl("lbl-PerpPin1", `Ø${f3(v.tol_Perp_Pin1)}`);
@@ -980,6 +1002,11 @@ build();
 document.addEventListener("input", calc);
 document.getElementById("reset").addEventListener("click", ()=>{ build(); calc(); });
 document.getElementById("print").addEventListener("click", ()=>window.print());
+document.getElementById("togglePartLNames").addEventListener("click", ()=>{
+  showPartLParamNames = !showPartLParamNames;
+  document.getElementById("togglePartLNames").textContent = showPartLParamNames ? "Show values" : "Show parameter names";
+  updatePartLDrawing(read().v);
+});
 document.getElementById("calcCase2").addEventListener("click", onCalculateCase2);
 calc();
 </script>
