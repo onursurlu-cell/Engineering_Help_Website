@@ -362,7 +362,7 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
     <div id="formPartU"></div>
   </div>
   <div class="card" aria-label="Part U drawings">
-    <h2>Part U — drawings</h2>
+    <h2>Part U — drawings <button type="button" id="togglePartUNames" style="margin-left:10px;font-size:.75rem;padding:4px 10px;vertical-align:middle">Show parameter names</button></h2>
     <div class="drawing-frame" aria-label="Part U isometric drawing">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 920" font-family="Arial, Helvetica, sans-serif">
 <defs>
@@ -848,6 +848,56 @@ function updatePartLDrawing(v){
   setLbl("lbl-yHole4L", f3(Math.abs(v.y_Hole4L)));
 }
 
+let showPartUParamNames = false;
+function updatePartUDrawing(v){
+  const setLbl = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
+  if(showPartUParamNames){
+    setLbl("lbl-MThole1234", "4X M{Mthread}");
+    setLbl("lbl-PosThole1234", "Øtol_Pos_Thole1234");
+    setLbl("lbl-DHole1U", "ØD_Hole1U ±tol_D_Hole1U");
+    setLbl("lbl-PerpHole1U", "Øtol_Perp_Hole1U");
+    setLbl("lbl-WSlot", "W_Slot ±tol_W_Slot");
+    setLbl("lbl-LSlot", "L_Slot ±tol_L_Slot");
+    setLbl("lbl-PosWSlot", "tol_Pos_W_Slot");
+    setLbl("lbl-PerpSlot", "tol_Perp_Slot");
+    setLbl("lbl-PosLSlot", "tol_Pos_L_Slot");
+    setLbl("lbl-tPartU", "t_Part_U__for_gauge");
+    setLbl("lbl-xPin2U", "x_Pin2");
+    setLbl("lbl-xHole1U", "x_Hole1L");
+    setLbl("lbl-yHole1U", "y_Hole1L");
+    setLbl("lbl-xHole2U", "x_Hole2L");
+    setLbl("lbl-yHole2U", "y_Hole2L");
+    setLbl("lbl-xHole3U", "x_Hole3L");
+    setLbl("lbl-yHole3U", "y_Hole3L");
+    setLbl("lbl-xHole4U", "x_Hole4L");
+    setLbl("lbl-yHole4U", "y_Hole4L");
+    return;
+  }
+  setLbl("lbl-MThole1234", `4X M${f3(v.Mthread)}`);
+  setLbl("lbl-PosThole1234", `Ø${f3(v.tol_Pos_Thole1234)}`);
+  setLbl("lbl-DHole1U", `Ø${f3(v.D_Hole1U)} ±${f3(v.tol_D_Hole1U)}`);
+  setLbl("lbl-PerpHole1U", `Ø${f3(v.tol_Perp_Hole1U)}`);
+  setLbl("lbl-WSlot", `${f3(v.W_Slot)} ±${f3(v.tol_W_Slot)}`);
+  setLbl("lbl-LSlot", `${f3(v.L_Slot)} ±${f3(v.tol_L_Slot)}`);
+  setLbl("lbl-PosWSlot", `${f3(v.tol_Pos_W_Slot)}`);
+  setLbl("lbl-PerpSlot", `${f3(v.tol_Perp_Slot)}`);
+  setLbl("lbl-PosLSlot", `${f3(v.tol_Pos_L_Slot)}`);
+  setLbl("lbl-tPartU", f3(v.t_Part_U__for_gauge));
+  // Basic dimensions are always shown as a positive magnitude on the drawing —
+  // the sign (fixed by COORD_SIGN above) only decides which side of the origin
+  // the leader line is drawn on, never the printed number. x/y Hole1-4 values
+  // are shared with Part L's inputs (same physical coordinates on both parts).
+  setLbl("lbl-xPin2U", f3(Math.abs(v.x_Pin2)));
+  setLbl("lbl-xHole1U", f3(Math.abs(v.x_Hole1L)));
+  setLbl("lbl-yHole1U", f3(Math.abs(v.y_Hole1L)));
+  setLbl("lbl-xHole2U", f3(Math.abs(v.x_Hole2L)));
+  setLbl("lbl-yHole2U", f3(Math.abs(v.y_Hole2L)));
+  setLbl("lbl-xHole3U", f3(Math.abs(v.x_Hole3L)));
+  setLbl("lbl-yHole3U", f3(Math.abs(v.y_Hole3L)));
+  setLbl("lbl-xHole4U", f3(Math.abs(v.x_Hole4L)));
+  setLbl("lbl-yHole4U", f3(Math.abs(v.y_Hole4L)));
+}
+
 function updateMinFreeCircleL(v, VC_H_L){
   // Schematic only — fixed geometry, same convention as the isometric
   // drawing above: only the two text labels update with the inputs.
@@ -859,6 +909,7 @@ function updateMinFreeCircleL(v, VC_H_L){
 function calc(){
   const {v, errs} = read();
   updatePartLDrawing(v);
+  updatePartUDrawing(v);
   const msgs = document.getElementById("msgs");
   msgs.innerHTML = "";
   if(errs.length){
@@ -1018,6 +1069,11 @@ document.getElementById("togglePartLNames").addEventListener("click", ()=>{
   showPartLParamNames = !showPartLParamNames;
   document.getElementById("togglePartLNames").textContent = showPartLParamNames ? "Show values" : "Show parameter names";
   updatePartLDrawing(read().v);
+});
+document.getElementById("togglePartUNames").addEventListener("click", ()=>{
+  showPartUParamNames = !showPartUParamNames;
+  document.getElementById("togglePartUNames").textContent = showPartUParamNames ? "Show values" : "Show parameter names";
+  updatePartUDrawing(read().v);
 });
 document.getElementById("calcCase2").addEventListener("click", onCalculateCase2);
 calc();
