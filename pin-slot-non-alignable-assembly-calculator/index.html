@@ -639,7 +639,7 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
     </div>
     <div class="drawing-frame" aria-label="Part U minimum free circle, datums A, B, C, with MMB">
       <div class="cap">Part U: Minimum free circle — A, B, C and MMB</div>
-      <div class="cap-desc">Schematic only — not to scale. Red circles = virtual condition of the setting pin's projected position with the MMB bonus from datums B and C (VC_T_U − 2×shift_max), calculated per hole by the registration-shift search below — click Calculate. As with Part L, the shrink is a worst-case scalar bound: a real part's actual free zone is full size but offset from the basic position, not concentric and shrunk like this schematic.</div>
+      <div class="cap-desc">Schematic only — not to scale. Red circles = virtual condition of the setting pin's projected position with the MMB bonus from datums B and C (VC_T_U + 2×shift_max), calculated per hole by the registration-shift search below — click Calculate. Unlike Part L's clearance holes, the setting pin is an obstruction, not something to fit through, so the worst-case guaranteed-safe boundary grows by the registration shift instead of shrinking — a real part's actual envelope is full size (VC_T_U) but offset from the basic position, not concentric and grown like this schematic.</div>
       <svg id="svgMinFreeMmbU1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 300" font-family="Arial, Helvetica, sans-serif">
 <defs>
 <marker id="mfc-ar-mmbu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
@@ -1249,9 +1249,16 @@ function renderMmbLDiagram(data, geo){
 }
 
 function renderMmbUDiagram(data, geo){
+  // VC_T_U is an obstruction boundary (the setting pin's worst-case projected
+  // envelope), not a clearance boundary like Part L's holes — so the MMB
+  // registration shift makes the guaranteed-safe boundary GROW, not shrink.
+  // See the project chat history for the full derivation (1D interval
+  // argument: a fixed observer must clear the UNION of all possible shifted
+  // obstruction positions, which is larger than any single one, unlike the
+  // INTERSECTION of shifted clear zones used for Part L's holes).
   const setLbl = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
   data.results.forEach(r=>{
-    const dia = geo.VC_T_U - 2 * r.shift_max;
+    const dia = geo.VC_T_U + 2 * r.shift_max;
     setLbl(`lbl-mfcMmbDia${r.index}U`, `#${r.index}  Ø${f3(dia)}`);
   });
   const g = document.getElementById("mfcMmbValuesU");
