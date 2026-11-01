@@ -376,12 +376,16 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
 <g id="mfcMmbValues" class="stale">
 <line x1="430" y1="70" x2="309.8" y2="83.1" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbl)"/>
 <text id="lbl-mfcMmbDia1" x="434" y="74" font-size="13" fill="#c00" font-weight="bold">#1  Ø —</text>
+<text id="lbl-mfcMmbXY1" x="434" y="88" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="110" x2="91.3" y2="85.9" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbl)"/>
 <text id="lbl-mfcMmbDia2" x="434" y="114" font-size="13" fill="#c00" font-weight="bold">#2  Ø —</text>
+<text id="lbl-mfcMmbXY2" x="434" y="128" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="190" x2="91.3" y2="205.9" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbl)"/>
 <text id="lbl-mfcMmbDia3" x="434" y="194" font-size="13" fill="#c00" font-weight="bold">#3  Ø —</text>
+<text id="lbl-mfcMmbXY3" x="434" y="208" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="230" x2="309.8" y2="216.9" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbl)"/>
 <text id="lbl-mfcMmbDia4" x="434" y="234" font-size="13" fill="#c00" font-weight="bold">#4  Ø —</text>
+<text id="lbl-mfcMmbXY4" x="434" y="248" font-size="11" fill="#c00">center: —</text>
 </g>
 <text x="40" y="285" font-size="12" fill="#666">Click Calculate (below) to run the registration-shift search and fill in the four values above.</text>
 </svg>
@@ -663,17 +667,21 @@ shift_y(x,y) = dy + x&middot;sin&theta; + y&middot;cos&theta; &minus; y
 <circle cx="300" cy="210" r="20" fill="none" stroke="#c00" stroke-width="1.4"/>
 <circle cx="300" cy="210" r="12" fill="none" stroke="#000" stroke-width="1.4"/>
 <text x="300" y="250" font-size="13" font-weight="bold" fill="#000" text-anchor="middle">#4</text>
-<line x1="380" y1="128" x2="310.8" y2="95.1" stroke="#000" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
-<text id="lbl-mfcMmbNomDiaU" x="384" y="132" font-size="13" fill="#000" font-weight="bold">M{Mthread} (4x)</text>
+<line x1="380" y1="52" x2="310.9" y2="84.8" stroke="#000" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
+<text id="lbl-mfcMmbNomDiaU" x="384" y="56" font-size="13" fill="#000" font-weight="bold">M{Mthread} (4x)</text>
 <g id="mfcMmbValuesU" class="stale">
 <line x1="430" y1="70" x2="316.4" y2="78.5" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
 <text id="lbl-mfcMmbDia1U" x="434" y="74" font-size="13" fill="#c00" font-weight="bold">#1  Ø —</text>
+<text id="lbl-mfcMmbXY1U" x="434" y="88" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="110" x2="98.8" y2="83.2" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
 <text id="lbl-mfcMmbDia2U" x="434" y="114" font-size="13" fill="#c00" font-weight="bold">#2  Ø —</text>
+<text id="lbl-mfcMmbXY2U" x="434" y="128" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="190" x2="98.8" y2="203.2" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
 <text id="lbl-mfcMmbDia3U" x="434" y="194" font-size="13" fill="#c00" font-weight="bold">#3  Ø —</text>
+<text id="lbl-mfcMmbXY3U" x="434" y="208" font-size="11" fill="#c00">center: —</text>
 <line x1="430" y1="230" x2="316.4" y2="221.5" stroke="#c00" stroke-width="1" marker-end="url(#mfc-ar-mmbu)"/>
 <text id="lbl-mfcMmbDia4U" x="434" y="234" font-size="13" fill="#c00" font-weight="bold">#4  Ø —</text>
+<text id="lbl-mfcMmbXY4U" x="434" y="248" font-size="11" fill="#c00">center: —</text>
 </g>
 <text x="40" y="285" font-size="12" fill="#666">Click Calculate (below) to run the registration-shift search and fill in the four values above.</text>
 </svg>
@@ -1238,11 +1246,31 @@ async function onCalculateCase2(){
   }
 }
 
+// The realized center of a hole under its own worst-case registration shift
+// (config_at_max: the specific dx/dy/theta the search found that shift to
+// occur at) — the same rigid-body transform used throughout this project:
+//   x' = dx + x*cos(theta) - y*sin(theta)
+//   y' = dy + x*sin(theta) + y*cos(theta)
+// This is NOT the center of the drawn (concentric, shrunk/grown) red circle —
+// that one stays at the hole's basic (x, y) by construction, as the
+// guaranteed-safe envelope across every possible shift. This is where the
+// true, full-size free circle actually sits for that one worst-case build —
+// see the project chat history for the full explanation. Each hole's own
+// worst case can occur at a different config, so the four points below are
+// not necessarily from one common shift.
+function mmbWorstCaseCenter(r){
+  const {dx, dy, theta} = r.config_at_max;
+  const c = Math.cos(theta), s = Math.sin(theta);
+  return { x: dx + r.x * c - r.y * s, y: dy + r.x * s + r.y * c };
+}
+
 function renderMmbLDiagram(data, geo){
   const setLbl = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
   data.results.forEach(r=>{
     const dia = geo.VC_H_L - 2 * r.shift_max;
     setLbl(`lbl-mfcMmbDia${r.index}`, `#${r.index}  Ø${f3(dia)}`);
+    const c = mmbWorstCaseCenter(r);
+    setLbl(`lbl-mfcMmbXY${r.index}`, `center: ${f4(c.x)}, ${f4(c.y)}`);
   });
   const g = document.getElementById("mfcMmbValues");
   if(g) g.classList.remove("stale");
@@ -1260,6 +1288,8 @@ function renderMmbUDiagram(data, geo){
   data.results.forEach(r=>{
     const dia = geo.VC_T_U + 2 * r.shift_max;
     setLbl(`lbl-mfcMmbDia${r.index}U`, `#${r.index}  Ø${f3(dia)}`);
+    const c = mmbWorstCaseCenter(r);
+    setLbl(`lbl-mfcMmbXY${r.index}U`, `center: ${f4(c.x)}, ${f4(c.y)}`);
   });
   const g = document.getElementById("mfcMmbValuesU");
   if(g) g.classList.remove("stale");
