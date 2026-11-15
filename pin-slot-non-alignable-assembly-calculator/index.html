@@ -1148,6 +1148,13 @@ function calc(){
   gu.push(row("GU_B","Pin","Datum B (Hole 1U)",xy(0,0),VC_B_U,pinEl(VC_B_U,v.gtol_Perp_GU_B,v.gtol_Size_GU_B,gw),"⟂ "+f4(v.gtol_Perp_GU_B),v.t_Part_U__for_gauge,v.tol_Perp_Hole1U));
   gu.push(row("GU_C width","Obround pin","Datum C, Slot width",xy(v.x_Pin2,0),VC_W_U,pinEl(VC_W_U,v.gtol_Pos_GU_C,v.gtol_W_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U__for_gauge,v.tol_Pos_W_Slot));
   gu.push(row("GU_C length","Obround pin","Slot length",xy(v.x_Pin2,0),VC_L_U,pinEl(VC_L_U,v.gtol_Pos_GU_C,v.gtol_L_GU_C,gw),"⌖ "+f4(v.gtol_Pos_GU_C),v.t_Part_U__for_gauge,v.tol_Pos_L_Slot));
+  // GU_1-4 and the "Setting pins" row just below both reuse t_Part_L__for_gauge
+  // (not t_Part_U__for_gauge, which GU_B/GU_C above correctly use for Part U's
+  // own real features) as their "Depth / length" value. That's intentional:
+  // Thole 1-4's position tolerance is a PROJECTED zone (see tol_Pos_Thole1234's
+  // label and VC_T_U above), so what's being checked is alignment over the span
+  // the shoulder bolt actually passes through -- Part L's thickness at Hole
+  // 1L-4L -- not Part U's own thickness where Thole itself is cut.
   for(let i=1;i<=4;i++) gu.push(row("GU_"+i,"Hole",`Projected position of Thole ${i}`,xy(v["x_Hole"+i+"L"],v["y_Hole"+i+"L"]),VC_T_U,holeEl(VC_T_U,v.gtol_Pos_GU_T,v.gtol_Size_GU_T,gw,v.gtol_Coax_SetPin),"⌖ Ø"+f4(v.gtol_Pos_GU_T),v.t_Part_L__for_gauge,v.tol_Pos_Thole1234));
   const sp = {min:v.Mthread, max:v.Mthread+v.gtol_Size_SetPin};
   gu.push(`<tr><td>Setting pins ×4</td><td>Accessory</td><td>Carry thread axes of Thole 1–4 into the projected zone; thread M${v.Mthread}</td><td class="n">in Thole 1–4</td><td class="n">${f4(v.Mthread)}</td><td class="n">${f4(sp.min)}</td><td class="n">${f4(sp.max)}</td><td class="n">◎ Ø${f4(v.gtol_Coax_SetPin)}</td><td class="n">${f4(v.t_Part_L__for_gauge)}</td><td class="n">—</td></tr>`);
